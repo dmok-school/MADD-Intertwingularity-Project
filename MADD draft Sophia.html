@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reflections</title>
+<style>
+:root{
+  --bg:#0b1324; --tile:#1d3566; --grout:#2d4b82; --frame:#070d1a; --ink:#d9e2f2; --muted:#8293b3;
+  --panel:rgba(7,13,26,.82); --glow:#9fc3ff; --data:#bfe0ff;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#c9d3e6; --panel:rgba(232,238,248,.9); --ink:#0f1a30; --muted:#43557a; --glow:#2f5fb8; --data:#16305e; color-scheme: light; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Verdana,Tahoma,sans-serif;font-size:13px;overflow:hidden}
+.page{position:fixed;inset:0;display:none}
+.page.on{display:block}
+a{color:var(--glow)}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--muted);padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--glow)}
+:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+/* ---------- homepage ---------- */
+#home svg{width:100%;height:100%;display:block}
+.hot{cursor:pointer;transition:filter .3s, opacity .3s}
+.hot:hover{filter:brightness(1.7) drop-shadow(0 0 12px #9fc3ff)}
+.hot.soon{cursor:help}
+.hot.soon:hover{filter:brightness(1.25)}
+#homeTip{position:fixed;pointer-events:none;background:var(--panel);border:1px solid var(--muted);padding:6px 9px;display:none;z-index:5}
+.note{position:fixed;left:14px;bottom:12px;background:var(--panel);padding:8px 12px;border-left:3px solid var(--glow);max-width:46ch;line-height:1.5}
+
+/* ---------- first reflection ---------- */
+#reflection{background-color:var(--tile);
+  background-image:linear-gradient(var(--grout) 2px, transparent 2px),linear-gradient(90deg,var(--grout) 2px, transparent 2px);
+  background-size:72px 72px}
+#reflection::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(3,6,14,.75) 100%);pointer-events:none}
+#wall{position:absolute;inset:0;pointer-events:none;z-index:1}
+.qtile{position:absolute;width:142px;min-height:70px;padding:6px;font-size:10px;line-height:1.35;color:var(--data);background:rgba(10,20,44,.72);border:1px solid #3b5d99;opacity:0;transform:scale(.6);transition:opacity .6s, transform .6s}
+.qtile.in{opacity:1;transform:scale(1)}
+.qtile b{display:block;font-weight:400;font-size:11.5px;color:#fff;margin-bottom:3px}
+@media (prefers-color-scheme: light){ .qtile{background:rgba(232,238,248,.85);border-color:#6f8fca} .qtile b{color:#0f1a30} }
+
+#stage{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:min(380px,70vw);aspect-ratio:4/5;perspective:1100px;z-index:2}
+#turner{position:absolute;inset:0;transform-style:preserve-3d;cursor:grab}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg)}
+.face svg{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+
+#hud{position:absolute;top:14px;right:14px;z-index:3;background:var(--panel);padding:12px 14px;min-width:230px;line-height:1.7;border:1px solid #2d4b82}
+#hud .big{font-size:22px;font-family:"Courier New",monospace}
+#hud .zero{color:#ff8a8a}
+#status{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;background:var(--panel);padding:10px 16px;max-width:min(640px,92vw);text-align:center;line-height:1.55;min-height:2.6em}
+#back{position:absolute;top:14px;left:14px;z-index:3}
+#searchbar{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;width:min(560px,92vw)}
+#searchbar .lbl{color:#cfe0ff;font-weight:bold;font-size:12px;white-space:nowrap}
+@media (prefers-color-scheme: light){ #searchbar .lbl{color:#0f1a30} }
+#searchbar .box{flex:1;background:#fff;color:#000;border:2px inset #c8c8c8;padding:4px 7px;font-size:14px;min-height:28px;white-space:nowrap;overflow:hidden}
+#searchbar .caret{display:inline-block;width:1px;height:1em;background:#000;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#searchbar .go{background:linear-gradient(#fdfdfd,#d6d6d6);color:#000;border:1px solid #8a8a8a;border-radius:3px;padding:4px 12px;font-size:12px}
+#searchbar .go.pressed{background:linear-gradient(#cfcfcf,#f2f2f2)}
+.qtile.fly{transition:left .9s cubic-bezier(.3,.7,.2,1), top .9s cubic-bezier(.3,.7,.2,1), opacity .4s, transform .9s}
+#deeper{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);z-index:3;display:none}
+#hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;color:var(--muted);pointer-events:none}
+
+@media (prefers-reduced-motion: reduce){ .qtile{transition:none} }
+</style>
+</head>
+<body>
+
+<!-- =====================================================
+     HOMEPAGE: rough placeholder for Danny's painting
+     ===================================================== -->
+<section class="page" id="home" aria-label="Homepage: the bathroom mirror">
+  <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Rough sketch of a girl taking a mirror selfie in a tiled bathroom, with reflections receding into the mirror">
+    <defs>
+      <pattern id="tiles" width="56" height="56" patternUnits="userSpaceOnUse">
+        <rect width="56" height="56" fill="#1d3566"/><path d="M0 0 H56 M0 0 V56" stroke="#2f4f88" stroke-width="3"/>
+      </pattern>
+      <pattern id="tilesDark" width="40" height="40" patternUnits="userSpaceOnUse">
+        <rect width="40" height="40" fill="#132548"/><path d="M0 0 H40 M0 0 V40" stroke="#22396a" stroke-width="2"/>
+      </pattern>
+      <pattern id="tilesFace" width="9" height="9" patternUnits="userSpaceOnUse">
+        <rect width="9" height="9" fill="#2a4a85"/><path d="M0 0 H9 M0 0 V9" stroke="#0d1830" stroke-width="1.4"/>
+      </pattern>
+    </defs>
+    <rect width="1600" height="900" fill="url(#tiles)"/>
+
+    <!-- mirror frames, nested -->
+    <rect x="110" y="40" width="1380" height="600" fill="#070d1a"/>
+    <rect x="140" y="66" width="1320" height="548" fill="url(#tilesDark)"/>
+    <rect x="740" y="96" width="700" height="370" fill="#0a1224" opacity=".9"/>
+    <rect x="760" y="112" width="664" height="338" fill="url(#tilesDark)" opacity=".8"/>
+    <rect x="1010" y="136" width="400" height="200" fill="#060b16"/>
+    <rect x="1024" y="148" width="372" height="176" fill="#0f1d3a"/>
+    <rect x="1190" y="162" width="196" height="148" fill="#060b16"/>
+    <rect x="1200" y="170" width="178" height="132" fill="#0b162d"/>
+
+    <!-- deepest reflection (Arya): abstract -->
+    <g class="hot soon" data-label="Deepest reflection: Arya (coming soon)">
+      <rect x="1200" y="170" width="178" height="132" fill="transparent"/>
+      <path d="M1290 186 L1306 214 L1336 200 L1318 232 L1350 244 L1316 254 L1334 290 L1298 266 L1284 300 L1270 266 L1236 284 L1256 252 L1224 238 L1258 228 L1246 196 L1274 212 Z" fill="#41557c" opacity=".85"/>
+    </g>
+
+    <!-- middle reflection (Ishaan): face replaced by tiles -->
+    <g class="hot soon" data-label="Middle reflection: Ishaan (coming soon)">
+      <path d="M1052 330 C1050 270 1080 240 1110 240 C1140 240 1172 270 1170 330 Z" fill="#1b2540"/>
+      <path d="M1060 210 C1056 170 1084 150 1110 150 C1138 150 1164 172 1160 212 C1158 236 1140 254 1110 256 C1080 254 1062 236 1060 210 Z" fill="#232a3a"/>
+      <ellipse cx="1110" cy="214" rx="32" ry="40" fill="url(#tilesFace)"/>
+      <rect x="1166" y="250" width="16" height="34" rx="2" fill="#3b4f52"/>
+    </g>
+
+    <!-- first reflection (Sophia): back of the head. Click to enter. -->
+    <g class="hot" id="toFirst" data-label="First reflection: click to step in" tabindex="0" role="link" aria-label="Enter the first reflection">
+      <rect x="800" y="140" width="300" height="470" fill="transparent"/>
+      <path d="M800 614 C800 470 860 420 930 410 C1000 420 1060 470 1062 614 Z" fill="#262b38"/>
+      <rect x="912" y="380" width="36" height="40" fill="#454c5c"/>
+      <path d="M842 380 C832 260 880 190 930 190 C984 190 1030 260 1020 380 L1006 372 L996 390 L980 376 L966 392 L950 378 L934 394 L918 378 L902 392 L888 376 L872 390 L858 374 Z" fill="#1d212b"/>
+      <path d="M884 224 C900 210 930 204 954 212" fill="none" stroke="#6d7fa6" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+      <path d="M1040 520 L1066 440 L1080 444 L1060 528 Z" fill="#2c3242"/>
+      <rect x="1056" y="380" width="30" height="64" rx="3" fill="#3d4f4c"/>
+    </g>
+
+    <!-- the real girl, in front of the mirror -->
+    <g>
+      <path d="M300 900 C300 700 360 620 470 610 C580 620 640 700 640 900 Z" fill="#8c98ae"/>
+      <path d="M320 470 C300 300 380 200 470 200 C570 200 640 300 620 470 L600 560 L580 470 L560 600 L540 480 L520 610 L420 610 L400 480 L380 600 L360 470 L340 560 Z" fill="#191b22"/>
+      <path d="M392 360 C392 300 420 266 470 266 C520 266 548 300 548 360 C548 430 514 480 470 486 C426 480 392 430 392 360 Z" fill="#7d8598"/>
+      <path d="M380 300 C400 250 450 236 520 250 C560 262 570 290 566 320 C520 290 440 284 380 330 Z" fill="#191b22"/>
+      <path d="M430 376 h28 M488 376 h28" stroke="#3c4252" stroke-width="4" stroke-linecap="round"/>
+      <path d="M640 560 L700 470 L716 478 L664 590 Z" fill="#7e8aa0"/>
+      <rect x="686" y="400" width="44" height="92" rx="4" fill="#3d4f4c"/><circle cx="708" cy="470" r="6" fill="#151a1f"/>
+    </g>
+
+    <!-- foreground hand and screen -->
+    <rect x="30" y="420" width="270" height="480" fill="#3f5458"/>
+    <rect x="44" y="434" width="242" height="330" fill="#2d3b40"/>
+    <path d="M250 900 C240 800 250 700 300 640 C330 610 360 640 350 700 C340 780 360 840 380 900 Z" fill="#b9b0a6"/>
+
+    <!-- sink below the mirror (Danny) -->
+    <g class="hot soon" data-label="The sink: Danny (coming soon)">
+      <path d="M760 690 H1240 C1240 780 1140 840 1000 840 C860 840 760 780 760 690 Z" fill="#9aa9c2"/>
+      <ellipse cx="1000" cy="694" rx="230" ry="22" fill="#6f7f9c"/>
+      <path d="M990 650 V676 M970 650 H1040" stroke="#c9d3e3" stroke-width="12" stroke-linecap="round"/>
+    </g>
+  </svg>
+  <div id="homeTip"></div>
+  <div class="note"><b>Homepage draft.</b> Rough stand-in for Danny's painting. Hover the reflections, then click the first reflection (the back of her head) to step in.</div>
+</section>
+
+<!-- =====================================================
+     SUBPAGE: the first reflection (Sophia)
+     ===================================================== -->
+<section class="page" id="reflection" aria-label="The first reflection">
+  <div id="wall"></div>
+  <button id="back">&larr; Back to the mirror</button>
+
+  <div id="hud" aria-live="polite">
+    <div>Times you tried to turn her</div>
+    <div class="big" id="tries">0</div>
+    <div>Times you saw her face</div>
+    <div class="big zero" id="faces">0</div>
+  </div>
+
+  <div id="hint">Hover over her to turn her around.</div>
+  <div id="stage">
+    <div id="turner" tabindex="0" role="button" aria-label="The reflection, facing away. Hover, click, or press Enter to try to turn her around.">
+      <div class="face front"></div>
+      <div class="face back"></div>
+    </div>
+  </div>
+
+  <div id="searchbar" aria-hidden="true"><span class="lbl">AOL Search</span><span class="box"><span id="typed"></span><span class="caret"></span></span><span class="go" id="go">Search</span></div>
+  <div id="status" aria-live="polite">She is facing away from you. Try to turn her around.</div>
+  <button id="deeper">Go deeper: the middle reflection (coming soon)</button>
+</section>
+
+<!-- the back of her head: used on BOTH sides of the figure, so no angle ever shows a face -->
+<template id="figureArt">
+  <svg viewBox="0 0 400 500" aria-hidden="true">
+    <path d="M40 500 C40 372 110 316 200 304 C290 316 360 372 360 500 Z" fill="#262b38"/>
+    <path d="M150 312 C170 330 230 330 250 312 L246 296 L154 296 Z" fill="#1b1f29"/>
+    <rect x="178" y="256" width="44" height="50" fill="#4a5162"/>
+    <path d="M96 236 C80 110 140 34 200 34 C262 34 322 110 306 236 L292 228 L284 252 L268 232 L258 256 L242 236 L230 260 L214 238 L200 262 L186 238 L172 260 L158 236 L146 256 L132 232 L118 252 L108 228 Z" fill="#1c2029"/>
+    <path d="M140 80 C162 58 196 50 228 58" fill="none" stroke="#7a8db6" stroke-width="7" stroke-linecap="round" opacity=".65"/>
+    <path d="M150 120 C150 160 156 200 164 236 M200 70 C198 120 198 190 200 250 M248 116 C252 160 248 200 240 236" fill="none" stroke="#2b313e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M330 420 L366 300 L384 306 L354 430 Z" fill="#2e3445"/>
+    <rect x="354" y="236" width="34" height="72" rx="4" fill="#3d4f4c"/>
+    <rect x="359" y="242" width="24" height="26" rx="2" class="phoneScreen" fill="#24333a"/>
+    <text class="phoneTime" x="371" y="259" text-anchor="middle" font-family="Courier New, monospace" font-size="8" fill="#0b1a24"></text>
+    <text x="200" y="352" text-anchor="middle" font-family="Courier New, monospace" font-size="13" fill="#7f93bd" letter-spacing="2">AnonID 10288049</text>
+    <g class="headData" opacity="0">
+      <rect x="118" y="96" width="164" height="128" rx="10" fill="#071226" opacity=".55"/>
+      <text class="hq" x="200" y="132" text-anchor="middle" font-family="Courier New, monospace" font-size="17" font-weight="bold" fill="#cfe6ff"></text>
+      <text class="ht" x="200" y="206" text-anchor="middle" font-family="Courier New, monospace" font-size="11" fill="#9fc3ff"></text>
+    </g>
+  </svg>
+</template>
+
+<script>
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- data: AOL user 10288049 (the account used for Danny's painting) ----------
+   One entry per search: [query, time, [[rank, site clicked], ...]].
+   Repeated rows for the same search (several clicked results) are grouped into one entry. */
+const ID = '10288049';
+const ROWS = [["psychosis", "2006-03-06 18:43:09", [[3, "www.aacap.org"], [7, "www.mind.org.uk"]]], ["depression with psychosis", "2006-03-06 18:48:35", [[1, "www.healthyplace.com"]]], ["effects of child sexual abuse", "2006-03-06 18:53:52", [[4, "www.ncptsd.va.gov"], [7, "www.apa.org"], [8, "www.siawso.org"], [9, "web4health.info"]]], ["crocheting", "2006-03-14 20:26:11", [[1, "www.knowledgehound.com"]]], ["the art of crocheting", "2006-03-14 20:27:39", [[1, "journals.aol.com"], [4, "www.artisticnetwork.net"], [5, "www.webspace.umd.edu"]]], ["who becomes artistic", "2006-03-14 20:36:08", []], ["going through therapy", "2006-03-16 10:06:24", [[1, "www.consciouschoice.com"], [2, "kidshealth.org"]]], ["going through therapy", "2006-03-16 10:12:11", []], ["therapy for sexual abuse", "2006-03-16 10:12:27", [[2, "www.academyanalyticarts.org"], [3, "www.helpyourselftherapy.com"], [4, "www.aaets.org"], [5, "www.phac-aspc.gc.ca"], [8, "www.aest.org.uk"]]], ["signs of obsession compulsion disorder", "2006-03-16 10:34:41", [[1, "psychcentral.com"], [3, "msms.essortment.com"], [7, "www.helpguide.org"]]], ["i have to be good all the time", "2006-03-16 10:37:31", []], ["trying to be perfect", "2006-03-16 10:37:57", [[3, "www.couns.uiuc.edu"]]], ["selfless mothers and daughters", "2006-03-16 10:45:31", []], ["signs of a selfless person", "2006-03-16 10:46:30", [[9, "www2.bitstream.net"]]], ["tuesdays child", "2006-03-16 10:48:43", [[2, "www.rhymes.org.uk"]]], ["caretaking roles in families", "2006-03-16 10:50:22", [[1, "www.ablongman.com"], [2, "www.ablongman.com"], [4, "www.findarticles.com"], [2, "www.ablongman.com"]]], ["parentified children", "2006-03-16 10:57:13", [[1, "www.alllaw.com"], [4, "www.ablongman.com"], [5, "www.ablongman.com"], [6, "www.ncbi.nlm.nih.gov"], [10, "www.wpic.pitt.edu"], [10, "www.wpic.pitt.edu"], [10, "www.wpic.pitt.edu"], [9, "www.cyc-net.org"]]], ["signs of a caretaking role in dysfunctional families", "2006-03-16 11:06:07", [[3, "en.wikipedia.org"], [2, "www.termpapergenie.com"], [1, "www.nmha.org"], [4, "www.answers.com"], [6, "www.crescentlife.com"], [8, "www.psychpage.com"]]], ["why some people live in isolation", "2006-03-19 19:40:47", [[3, "www.berkeleywellness.com"], [2, "hikingincolorado.org"], [9, "www.patient.co.uk"]]], ["bubbly personality", "2006-03-24 11:00:15", []], ["people search", "2006-03-24 11:08:13", []], ["seneca direct", "2006-03-28 09:29:47", [[1, "www.cigarettessentdirect.com"]]], ["obsessive cleaning", "2006-03-28 09:37:01", [[3, "aca.ninemsn.com.au"], [2, "sundripjournals.blogspot.com"], [4, "www.pregnancy-info.net"], [10, "www.ojar.com"], [9, "www.medic8.com"]]], ["people living in isolation", "2006-03-28 09:44:36", []], ["survival insticts of sexually molested people", "2006-03-28 09:45:31", []], ["survival insticts of sexually molested people", "2006-03-28 09:46:14", []], ["survivors of sexual molestation", "2006-03-28 09:47:06", [[5, "www.healthyplace.com"], [9, "www.enotalone.com"], [10, "www.haworthpress.com"]]], ["behavior problems of adults abused as children", "2006-03-28 09:55:44", [[2, "www.apa.org"], [5, "www.aacap.org"], [9, "www.sciencedaily.com"], [10, "mentalhelp.net"]]], ["behavior problems of adults abused as children", "2006-03-28 10:18:00", [[13, "www.prevent-abuse-now.com"]]], ["perfectionist personality", "2006-03-28 10:25:47", [[1, "narcissism.homestead.com"]]], ["therapist ethics", "2006-03-29 19:37:22", [[3, "kspope.com"], [2, "kspope.com"], [10, "www.asrt.org"]]], ["bmw", "2006-03-29 19:44:31", []], ["boy called it", "2006-03-31 10:11:29", [[5, "www.directessays.com"], [9, "www.bookcrossing.com"]]], ["childhood abuse survivors", "2006-03-31 10:16:50", [[2, "www.childabusesurvivor.net"]]], ["old forge", "2006-04-01 06:45:28", []], ["attractive", "2006-04-03 20:16:14", []], ["happy when someone died", "2006-04-04 20:39:08", [[6, "windowmanager.blogspot.com"]]], ["scranton times", "2006-04-04 20:42:35", [[1, "www.scrantontimes.com"]]], ["scranton times", "2006-04-05 08:36:51", [[1, "www.scrantontimes.com"]]], ["ideal weight for women", "2006-04-05 17:58:16", [[1, "www.annecollins.com"]]], ["http froggy 101.com", "2006-04-06 16:59:01", [[1, "www.froggy101.com"], [4, "www.froggy929.com"], [2, "profile.myspace.com"], [3, "profile.myspace.com"], [1, "www.froggy101.com"]]], ["oprahs dept diet", "2006-04-07 16:41:12", []], ["oprahs dept diet", "2006-04-07 16:42:33", []], ["what do colors mean", "2006-04-08 07:52:10", [[2, "www.infoplease.com"], [1, "www.factmonster.com"]]], ["knoebles", "2006-04-08 16:36:41", [[1, "co.essortment.com"], [2, "www.epinions.com"], [3, "www.angelfire.com"]]], ["froggy 101", "2006-04-08 16:39:55", [[1, "www.froggy101.com"], [5, "forums.northernattack.com"], [1, "www.froggy101.com"]]], ["froggy 101 sex offender list", "2006-04-08 16:41:33", []], ["http www.seneca direct.com", "2006-04-11 10:22:32", []], ["realestate in fortyfort pennsylvania", "2006-04-20 12:08:58", [[2, "www.usacitiesonline.com"], [1, "www.desiderio.net"]]], ["medical terms", "2006-04-25 08:46:03", [[1, "www.medterms.com"]]], ["trauma", "2006-04-25 09:08:02", []], ["dr berger kingston pa", "2006-04-25 09:11:28", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:24", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:28", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:35", []], ["recovering from childhood abuse", "2006-04-26 09:13:45", [[1, "open-mind.org"], [3, "store.health.org"], [8, "www.nmessences.com"], [9, "www.jimhopper.com"]]], ["hay", "2006-04-30 19:56:02", []], ["why do women fall in love with their therapists", "2006-04-30 19:58:28", [[4, "www.psychologytoday.com"]]], ["why do women fall in love with their therapists", "2006-04-30 19:59:52", [[15, "www.therapy-abuse.net"], [24, "skepdic.com"]]], ["why do women fall in love with their therapists", "2006-04-30 20:16:05", []], ["scranton times", "2006-05-04 08:54:51", [[1, "www.scrantontimes.com"], [5, "www.thetimes-tribune.com"]]], ["personality types", "2006-05-04 16:37:21", [[3, "www.9types.com"], [5, "www.personalitypage.com"], [8, "www.humanmetrics.com"]]], ["scranton times", "2006-05-05 08:21:10", [[1, "www.scrantontimes.com"]]], ["passive agressive personality", "2006-05-05 08:46:44", [[1, "www.passiveaggressive.homestead.com"]]], ["aggressive personality", "2006-05-05 08:49:13", [[2, "narcissism.homestead.com"]]], ["passive personality", "2006-05-05 08:50:49", [[6, "www.nesl.edu"]]], ["scranton times", "2006-05-05 15:22:17", [[1, "www.scrantontimes.com"]]], ["dictionary", "2006-05-06 17:57:43", []], ["dictionary", "2006-05-06 17:59:47", []], ["dictionary", "2006-05-06 18:02:52", []], ["dictionary", "2006-05-06 18:10:29", []], ["webstersdictionary.com", "2006-05-06 18:25:34", [[1, "www.m-w.com"]]], ["rune sca", "2006-05-07 13:08:55", []], ["www.runescape.copm", "2006-05-07 13:09:19", [[1, "www.miniclip.com"]]], ["demolay", "2006-05-10 17:53:17", [[1, "www.demolay.org"]]], ["effects of childhood trauma", "2006-05-10 19:36:59", [[1, "www.upliftprogram.com"], [2, "www.childtrauma.org"], [3, "www.childtrauma.org"], [5, "www.sidran.org"], [6, "web4health.info"], [9, "www.cavalcadeproductions.com"]]], ["effects of childhood trauma", "2006-05-10 20:29:47", [[11, "www.ncbi.nlm.nih.gov"], [12, "www.ncbi.nlm.nih.gov"], [13, "www.lawandpsychiatry.com"], [25, "www.cavalcadeproductions.com"]]], ["dictionary", "2006-05-11 15:32:48", [[1, "dictionary.reference.com"], [2, "www.m-w.com"], [4, "www.yourdictionary.com"]]], ["wyoming valley library", "2006-05-12 11:47:48", []], ["wyoming valley libraries", "2006-05-12 11:48:20", []], ["luzerne county library", "2006-05-12 11:49:03", [[1, "www.luzerneco.lib.pa.us"]]], ["what makes a changeable person", "2006-05-13 18:32:03", [[7, "xmlns.com"]]], ["how do people fall in love", "2006-05-13 18:45:17", [[1, "health.discovery.com"], [5, "www.bbc.co.uk"], [1, "health.discovery.com"]]], ["signs of a good wife", "2006-05-13 19:36:45", []], ["signs of a good wife", "2006-05-13 19:37:40", [[15, "www.everything2.com"], [24, "www.britishexpat.com"]]], ["what kind of women do men fall madly i n love with", "2006-05-13 19:48:45", [[1, "www.lovessecrets.com"], [2, "www.amazon.com"], [3, "www.amazon.com"], [5, "www.chiroarts.com"]]], ["pulmory testing", "2006-05-15 08:38:34", []], ["pulmonary testing", "2006-05-15 08:39:34", [[2, "www.nationaljewish.org"]]], ["why are some women so mean", "2006-05-18 18:05:22", []], ["mean women", "2006-05-18 18:06:04", [[1, "www.askmen.com"], [2, "www.amazon.com"], [2, "www.amazon.com"], [1, "www.askmen.com"]]], ["test if your mean", "2006-05-18 18:14:22", []], ["perfectly shaped woman", "2006-05-18 18:14:58", []], ["how to get into shape", "2006-05-19 11:30:45", []], ["exercise routine at home", "2006-05-19 11:34:35", [[2, "www.phitchick.com"]]], ["shonen jump", "2006-05-20 15:15:25", [[5, "www.animenewsnetwork.com"], [8, "www.upperdeckentertainment.com"]]], ["being the best mother", "2006-05-24 19:45:41", [[6, "www.momscape.com"]]], ["to wear one's heart on one's sleeve", "2006-05-25 18:16:03", []], ["to wear one's heart on one's sleeve", "2006-05-25 18:17:31", []], ["vulnerable", "2006-05-25 18:18:45", [[1, "www.coping.org"]]], ["traits of a loving caring woman", "2006-05-25 18:22:44", []], ["psychology wearing one's heart on one's sleeve", "2006-05-25 18:39:57", [[5, "www.pep-web.org"], [6, "www.pep-web.org"], [7, "members.aol.com"], [7, "members.aol.com"], [8, "homepages.ihug.co.nz"]]], ["learning the truth", "2006-05-25 18:53:01", []]];
+const rankOf = r => r[2].length ? r[2][0][0] : null;
+const clickLine = r => r[2].length ? `clicked ${r[2].length} result${r[2].length > 1 ? 's' : ''}: ${r[2][0][1]}${r[2].length > 1 ? ' +' + (r[2].length - 1) : ''}` : 'no click';
+
+/* ---------- simple two-page routing (#first-reflection is the subpage) ---------- */
+function route(){
+  const sub = location.hash === '#first-reflection';
+  $('#home').classList.toggle('on', !sub);
+  $('#reflection').classList.toggle('on', sub);
+  document.title = sub ? 'the first reflection' : 'Reflections';
+  if (sub) layoutTiles();
+}
+addEventListener('hashchange', route);
+$('#toFirst').addEventListener('click', () => location.hash = 'first-reflection');
+$('#toFirst').addEventListener('keydown', e => { if (e.key === 'Enter') location.hash = 'first-reflection'; });
+$('#back').onclick = () => { location.hash = ''; };
+
+/* homepage tooltips */
+const tip = $('#homeTip');
+document.querySelectorAll('#home .hot').forEach(g => {
+  g.addEventListener('mousemove', e => { tip.textContent = g.dataset.label; tip.style.display = 'block'; tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px'; });
+  g.addEventListener('mouseleave', () => tip.style.display = 'none');
+});
+
+/* ---------- the figure: the back of her head on both sides ---------- */
+const art = $('#figureArt');
+document.querySelectorAll('.face').forEach(f => f.appendChild(art.content.cloneNode(true)));
+
+/* ---------- query tiles on the wall ---------- */
+let spots = [];
+function layoutTiles(){
+  const W = innerWidth, H = innerHeight, box = $('#stage').getBoundingClientRect();
+  spots = [];
+  for (let y = 70; y < H - 150; y += 84) for (let x = 14; x < W - 156; x += 156){
+    const overFigure = x + 142 > box.left - 20 && x < box.right + 20 && y + 70 > box.top - 10 && y < box.bottom + 10;
+    const overHud = x + 142 > W - 260 && y < 170;
+    if (!overFigure && !overHud) spots.push([x, y]);
+  }
+  // shuffle so data appears scattered
+  for (let i = spots.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
+  document.querySelectorAll('.qtile').forEach((t, i) => { const s = spots[i % spots.length]; t.style.left = s[0] + 'px'; t.style.top = s[1] + 'px'; });
+}
+addEventListener('resize', () => { if (location.hash === '#first-reflection') layoutTiles(); });
+function wrap(q, n){ const words = q.split(' '), lines = ['']; words.forEach(w => { const l = lines[lines.length-1]; if ((l + ' ' + w).trim().length > n) lines.push(w); else lines[lines.length-1] = (l + ' ' + w).trim(); }); return lines.slice(0, 4); }
+const heads = () => document.querySelectorAll('.headData');
+function writeHead(text, t, rank){
+  const lines = wrap(text, 14);
+  document.querySelectorAll('.hq').forEach(el => { el.innerHTML = ''; lines.forEach((ln, k) => { const ts = document.createElementNS('http://www.w3.org/2000/svg', 'tspan'); ts.setAttribute('x', 200); ts.setAttribute('dy', k ? 21 : 0); ts.textContent = ln; el.appendChild(ts); }); });
+  document.querySelectorAll('.ht').forEach(el => el.textContent = t ? t + (rank ? '  #' + rank : '') : '');
+}
+function setHead(op){ heads().forEach(h => { h.style.transition = 'opacity .35s'; h.setAttribute('opacity', op); }); }
+function phone(t){ document.querySelectorAll('.phoneScreen').forEach(p => p.setAttribute('fill', t ? '#9fd4ff' : '#24333a')); document.querySelectorAll('.phoneTime').forEach(p => p.textContent = t ? t.slice(11, 16) : ''); }
+
+// a card leaves her head and flies to its tile on the wall
+function fly(i){
+  const r = ROWS[i], q = r[0], t = r[1];
+  const box = $('#stage').getBoundingClientRect();
+  const el = document.createElement('div'); el.className = 'qtile fly in';
+  el.innerHTML = `<b></b>${t}<br><span class="cl"></span>`;
+  el.querySelector('.cl').textContent = clickLine(r);
+  // when the wall is full, the oldest card in that spot fades out
+  const old = document.querySelector(`.qtile[data-spot="${i % spots.length}"]`);
+  if (old){ old.style.opacity = 0; setTimeout(() => old.remove(), 600); }
+  el.dataset.spot = i % spots.length;
+  el.querySelector('b').textContent = q;
+  el.style.left = (box.left + box.width/2 - 71) + 'px'; el.style.top = (box.top + box.height*.22) + 'px'; el.style.transform = 'scale(1.15)';
+  $("#wall").appendChild(el);
+  const s = spots[i % spots.length] || [20, 80];
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.style.left = s[0] + 'px'; el.style.top = s[1] + 'px'; el.style.transform = 'scale(1)'; }));
+}
+
+/* ---------- trying to turn her ---------- */
+const turner = $('#turner');
+let angle = 0, tries = 0, busy = false, shown = 0;
+
+// each attempt picks one way of NOT showing her face
+const MOVES = [
+  {kind: 'flinch', say: n => `Attempt ${n}: she starts to turn, then snaps back. Still the back of her head.`},
+  {kind: 'flinch', say: n => `Attempt ${n}: she gets halfway, then turns away again.`},
+  {kind: 'full',   say: n => `Attempt ${n}: she turned all the way around. You are still looking at the back of her head.`},
+  {kind: 'flinch', say: n => `Attempt ${n}: she refuses. You get another search instead of a face.`},
+  {kind: 'full',   say: n => `Attempt ${n}: another full turn. The back of her head is on both sides.`},
+  {kind: 'spin',   say: n => `Attempt ${n}: she spins twice. There is no front to this reflection.`},
+  {kind: 'full',   say: n => `Attempt ${n}: she turns. Her back again.`}
+];
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function typeQuery(q, total){
+  const el = $('#typed'); el.textContent = '';
+  const per = Math.max(25, total / Math.max(1, q.length));
+  for (let k = 1; k <= q.length; k++){ el.textContent = q.slice(0, k); writeHead(q.slice(0, k)); await sleep(per); }
+}
+async function tryTurn(){
+  if (busy) return;
+  busy = true; tries++;
+  $('#hint').style.display = 'none';
+  $('#tries').textContent = tries;
+  $('#faces').textContent = 0;               // never changes, no matter what
+  const move = tries <= 6 ? MOVES[tries - 1] : MOVES[2 + Math.floor(Math.random() * 5)];
+  const idx = (tries - 1) % ROWS.length, row = ROWS[idx], q = row[0], t = row[1], rank = rankOf(row), isNew = idx === shown;
+
+  // the turn and the search happen together: as she turns, her search is typed
+  // into the box AND across the back of her head, where her face should be
+  let frames, dur = Math.max(1600, q.length * 75 + 500);
+  if (move.kind === 'flinch'){ frames = [angle, angle + 62, angle + 70, angle]; }
+  else if (move.kind === 'full'){ frames = [angle, angle + 180]; angle += 180; }
+  else { frames = [angle, angle + 720]; angle += 720; dur += 600; }
+  if (reduce) dur = 400;
+
+  $('#status').textContent = `Attempt ${tries}: she is turning...`;
+  writeHead(''); setHead(1); phone(t);
+  const anim = turner.animate(frames.map(a => ({transform: `rotateY(${a}deg)`})), {duration: dur, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards'});
+  await Promise.all([typeQuery(q, dur * .8), anim.finished]);
+  turner.style.transform = `rotateY(${angle}deg)`; anim.cancel();
+
+  writeHead(q, t, rank);
+  $('#go').classList.add('pressed'); await sleep(160); $('#go').classList.remove('pressed');
+  $('#status').textContent = move.say(tries) + `  She searched "${q}" at ${t.slice(11, 16)}.`;
+  if (isNew){ fly(idx); shown++; }
+  document.title = q;
+  await sleep(900);
+  setHead(0); phone(null);
+
+  if (tries === 12) $('#deeper').style.display = 'block';   // the way on opens partway, the data keeps going
+  if (shown === ROWS.length && isNew){
+    const last = ROWS[ROWS.length - 1];
+    $('#status').textContent = `You tried ${tries} times and read all ${ROWS.length} of her searches, ending with "${last[0]}." You never saw her face.`;
+  }
+  busy = false;
+}
+// a new attempt each time the cursor enters her, plus click, tap and keyboard
+turner.addEventListener('mouseenter', tryTurn);
+turner.addEventListener('click', tryTurn);
+turner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tryTurn(); } });
+$('#deeper').onclick = () => { $('#status').textContent = "Ishaan's reflection will open here."; };
+
+route();
+</script>
+</body>
+</html>
