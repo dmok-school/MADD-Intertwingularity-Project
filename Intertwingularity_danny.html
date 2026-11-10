@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Danny Reflection</title>
 
 <style>
@@ -21,25 +22,202 @@ html, body {
     perspective: 3000px;
 }
 
-#sink {
+/* The "world" is the oversized sink image + anything pinned to it.
+   JS sizes it larger than the screen, then pans and tilts it. */
+#world {
     position: absolute;
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
+    left: 50%;
+    top: 50%;
     transform-origin: center center;
-
     will-change: transform;
 }
 
+#sink {
+    display: block;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Vignette: lives inside #world, so it is part of the image itself and
+   pans/tilts with it. The image's own edges fade into the black page. */
+.vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;   /* lets clicks/hover reach the home link */
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(0,0,0,0) 50%,
+            rgba(0,0,0,0.4) 80%,
+            rgba(0,0,0,1) 100%
+        );
+    box-shadow: inset 0 0 10vmin 8vmin #000;
+}
+
+/* Blink: two eyelids fixed to the screen that close, hold, and open. */
+.eyelid {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 56%;            /* >50% so the lids overlap when closed */
+    background: #000;
+    pointer-events: none;
+    z-index: 20;
+    will-change: transform;
+}
+
+.eyelid.top {
+    top: 0;
+    transform: translateY(-105%);
+    border-radius: 0 0 50% 50% / 14vh 14vh 0 0;
+}
+
+.eyelid.bottom {
+    bottom: 0;
+    transform: translateY(105%);
+    border-radius: 50% 50% 0 0 / 0 0 14vh 14vh;
+}
+
+.scene.blinking .eyelid.top    { animation: lid-top var(--blink-ms, 700ms) ease-in-out; }
+.scene.blinking .eyelid.bottom { animation: lid-bottom var(--blink-ms, 700ms) ease-in-out; }
+
+@keyframes lid-top {
+    0%   { transform: translateY(-105%); }
+    40%  { transform: translateY(0); }
+    50%  { transform: translateY(0); }
+    100% { transform: translateY(-105%); }
+}
+
+@keyframes lid-bottom {
+    0%   { transform: translateY(105%); }
+    40%  { transform: translateY(0); }
+    50%  { transform: translateY(0); }
+    100% { transform: translateY(105%); }
+}
+
+/* Clickable eye in the drain. Positioned in image-percentages so it stays
+   locked to the drain while the image pans/tilts. */
+.drain-eye {
+    position: absolute;
+    left: 50%;
+    top: 78.4%;
+    width: 5%;
+    aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.drain-eye:hover {
+    background: rgba(159,195,255,0.18);
+    box-shadow: 0 0 24px 6px #9fc3ff;
+}
+
+.drain-eye.hidden {
+    display: none;
+}
+
+/* Clickable faucet handles (active in sink2 only). Percent positions are
+   relative to the image, so they stay locked to the handles while panning. */
+.faucet-handle {
+    position: absolute;
+    top: 53.5%;
+    width: 6.5%;
+    aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.faucet-handle.left  { left: 43.2%; }
+.faucet-handle.right { left: 56.5%; }
+
+.faucet-handle:hover {
+    background: rgba(159,195,255,0.18);
+    box-shadow: 0 0 24px 6px #9fc3ff;
+}
+
+.faucet-handle.hidden {
+    display: none;
+}
+
+/* Clickable phone in the bottom-right corner (active in sink3 only). */
+.phone {
+    position: absolute;
+    left: 94%;
+    top: 80%;
+    width: 6%;
+    height: 22%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    border-radius: 12%;
+    cursor: pointer;
+}
+
+.phone:hover {
+    background: rgba(159,195,255,0.18);
+    box-shadow: 0 0 24px 6px #9fc3ff;
+}
+
+.phone.hidden {
+    display: none;
+}
+
+/* ---- sink4: flashlight ----
+   A screen-fixed dark overlay with a clear hole that follows the mouse.
+   JS drives --fx/--fy (position), --clear/--fade (hole size) and --dark (opacity). */
+.flashlight {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;   /* clicks fall through to the eyes underneath */
+    z-index: 5;             /* above the image, below the eyelids */
+    background: radial-gradient(
+        circle at var(--fx, 50%) var(--fy, 50%),
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) var(--clear, 150px),
+        rgba(0,0,0, calc(var(--dark, 0.94) * 0.45)) calc(var(--clear, 150px) + (var(--fade, 400px) - var(--clear, 150px)) * 0.5),
+        rgba(0,0,0, var(--dark, 0.94)) var(--fade, 400px)
+    );
+}
+
+.scene.dark .flashlight { display: block; }
+
+/* Clickable painted eyes in sink4. Positions/sizes are image-percentages
+   (see the EYES list in the script). */
+.eyeball {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.eyeball:hover {
+    background: rgba(159,195,255,0.18);
+    box-shadow: 0 0 24px 6px #9fc3ff;
+}
+
+.eyeball.hidden {
+    display: none;
+}
+
+/* Add ?debug to the page URL to outline every hotspot and turn the flashlight off */
+.scene.debug .flashlight { display: none !important; }
+.scene.debug .eyeball,
+.scene.debug .drain-eye,
+.scene.debug .faucet-handle,
+.scene.debug .phone,
+.scene.debug .home-link { outline: 1px dashed #ff4d4d; }
+
+/* Lives inside the world so it pans with the image.
+   Positioned over the mirror area at the top of the image. */
 .home-link {
     position: absolute;
-
-    top: -22%;
-
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 30%;
-
+    height: 25%;
     cursor: pointer;
 }
 
@@ -47,53 +225,278 @@ html, body {
     background: rgba(159,195,255,0.12);
     box-shadow: 0 0 20px #9fc3ff;
 }
+
+.home-link.hidden {
+    display: none;
+}
 </style>
 </head>
 
 <body>
 
 <div class="scene">
+    <div id="world">
+        <img id="sink" src="art_assets/sink1.png" alt="Sink" draggable="false">
+        <a
+            class="home-link"
+            href="MADD draft Sophia.html"
+            title="Return to Sophia"
+        ></a>
+        <div class="drain-eye" title="Look into the drain"></div>
+        <div class="faucet-handle left hidden" title="Turn the handle"></div>
+        <div class="faucet-handle right hidden" title="Turn the handle"></div>
+        <div class="phone hidden" title="Pick up the phone"></div>
+        <div class="vignette"></div>
+    </div>
 
-    <img id="sink" src="sink.png" alt="Sink">
+    <div class="flashlight"></div>
 
-    <a
-        class="home-link"
-        href="MADD draft Sophia.html"
-        title="Return to Sophia"
-    ></a>
-
+    <div class="eyelid top"></div>
+    <div class="eyelid bottom"></div>
 </div>
 
 <script>
 
-const sink = document.getElementById('sink');
+/* ---- Tweakable settings ---- */
+const ZOOM      = 1.5;   // how much bigger than "cover" the image is (more = more to pan across)
+const PAN_EASE  = 0.06;  // lower = floatier panning
+const TILT_Y    = 7;     // max rotateY degrees (parallax tilt)
+const TILT_X    = 5;     // max rotateX degrees
 
-let targetX = 0;
-let targetY = 0;
+const world = document.getElementById('world');
+const sink  = document.getElementById('sink');
 
-let currentX = 0;
-let currentY = 0;
+let maxPanX = 0, maxPanY = 0;
 
-document.addEventListener('mousemove', (e) => {
+// mouse position normalised to -1..1 (0 = center)
+let targetNX = 0, targetNY = 0;
+let nx = 0, ny = 0;
 
-    const mx = (e.clientX / window.innerWidth) - 0.5;
-    const my = (e.clientY / window.innerHeight) - 0.5;
+function layout() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const iw = sink.naturalWidth  || 2;
+    const ih = sink.naturalHeight || 1;
 
-    targetX = mx * 60;
-    targetY = my * 40;
+    const scale = Math.max(vw / iw, vh / ih) * ZOOM;
+    const W = iw * scale;
+    const H = ih * scale;
 
+    world.style.width  = W + 'px';
+    world.style.height = H + 'px';
+
+    // how far the image can slide before an edge enters the screen
+    maxPanX = Math.max(0, (W - vw) / 2);
+    maxPanY = Math.max(0, (H - vh) / 2);
+}
+
+if (sink.complete) layout(); else sink.addEventListener('load', layout);
+window.addEventListener('resize', layout);
+
+function updateTarget(clientX, clientY) {
+    targetNX = (clientX / window.innerWidth  - 0.5) * 2;
+    targetNY = (clientY / window.innerHeight - 0.5) * 2;
+}
+
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+
+document.addEventListener('pointermove', (e) => {
+    updateTarget(e.clientX, e.clientY);
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+/* ---- Blink on click ---- */
+const scene = document.querySelector('.scene');
+const drainEye = document.querySelector('.drain-eye');
+const homeLink = document.querySelector('.home-link');
+const faucetHandles = document.querySelectorAll('.faucet-handle');
+const phone = document.querySelector('.phone');
+const BLINK_MS  = 2000;                 // total blink length (drives the CSS animation too)
+const CLOSED_MS = BLINK_MS * 0.45;      // eyes are fully shut at ~40-50% of the blink
+let blinking = false;
+
+document.documentElement.style.setProperty('--blink-ms', BLINK_MS + 'ms');
+
+// Preload the next scene so the swap happens instantly while the eyes are shut
+const SCENE_2 = 'art_assets/sink2.png';
+const SCENE_3 = 'art_assets/sink3.gif';
+const SCENE_4 = 'art_assets/sink4.png';
+const SCENE_5 = 'art_assets/sinknew.png';
+[SCENE_2, SCENE_3, SCENE_4, SCENE_5].forEach(src => { new Image().src = src; });
+
+// Re-measure whenever the image changes (the new scene may have a different pixel size)
+sink.addEventListener('load', layout);
+
+// Blink; onClosed (optional) runs at the moment the eyes are fully shut
+function blink(onClosed) {
+    if (blinking) return false;
+    blinking = true;
+    scene.classList.add('blinking');
+    if (onClosed) setTimeout(onClosed, CLOSED_MS);
+    setTimeout(() => {
+        scene.classList.remove('blinking');
+        blinking = false;
+    }, BLINK_MS);
+    return true;
+}
+
+function goToSink2() {
+    sink.src = SCENE_2;                       // same dimensions as sink1
+    drainEye.classList.add('hidden');         // the eye is gone in this scene
+    homeLink.classList.add('hidden');         // no more going back through the mirror
+    faucetHandles.forEach(h => h.classList.remove('hidden'));
+    layout();
+}
+
+function goToSink3() {
+    sink.src = SCENE_3;
+    faucetHandles.forEach(h => h.classList.add('hidden'));
+    phone.classList.remove('hidden');         // the phone becomes clickable
+    layout();
+}
+
+/* ---- sink4: flashlight + eyes ---- */
+
+// Where each painted eye is, as % of the image (x/y = center, w/h = size).
+// Tweak these if a hotspot is off. Add ?debug to the URL to see them outlined.
+const EYES = [
+    { x:  3.7, y: 49.7, w:  7,  h: 24 },   // far-left cyan eye
+    { x: 20.6, y: 69.1, w: 14,  h: 17 },   // lower-left cyan eye
+    { x: 48.1, y: 40.4, w: 15,  h: 17 },   // cyan eye over the faucet
+    { x: 82.7, y: 54.3, w: 18,  h: 28 },   // big right cyan eye
+    { x: 24.0, y: 94.0, w: 14,  h: 12 },   // bottom-left blue eye
+    { x: 66.0, y: 94.5, w: 11,  h: 11 },   // bottom-center blue eye (under the sink)
+    { x: 81.5, y: 92.4, w: 12,  h: 14 },   // bottom-right blue eye
+    { x: 94.0, y: 82.0, w:  4,  h: 10 }    // eye on the phone
+];
+
+const FLASH = {
+    maxDark:    0.94,   // how black the dark is at the start (1 = pitch black)
+    startClear: 9,      // flashlight clear radius at the start (% of the smaller screen side)
+    startFade:  26,     // radius where it's fully dark again
+    endClear:   45,     // same two values once every eye is found
+    endFade:    90,
+    follow:     0.25,   // how tightly the light trails the mouse (1 = locked)
+    ease:       0.05    // how smoothly the vignette fades after each eye
+};
+
+const flashlight = document.querySelector('.flashlight');
+const vignetteEl = document.querySelector('.vignette');
+const DEBUG = new URLSearchParams(location.search).has('debug');
+if (DEBUG) scene.classList.add('debug');
+
+const eyeEls = EYES.map(eye => {
+    const d = document.createElement('div');
+    d.className = 'eyeball hidden';
+    d.title = 'An eye';
+    d.style.left   = eye.x + '%';
+    d.style.top    = eye.y + '%';
+    d.style.width  = eye.w + '%';
+    d.style.height = eye.h + '%';
+    world.insertBefore(d, vignetteEl);
+    return d;
+});
+
+let flashOn  = false;
+let eyesFound = 0;
+let fadeTarget = 0;     // 0 = darkest, 1 = fully revealed
+let fadeNow    = 0;
+let flX = window.innerWidth / 2;
+let flY = window.innerHeight / 2;
+
+function updateFlashlight() {
+    if (!flashOn) return;
+    fadeNow += (fadeTarget - fadeNow) * FLASH.ease;
+    flX += (mouseX - flX) * FLASH.follow;
+    flY += (mouseY - flY) * FLASH.follow;
+
+    const vmin  = Math.min(window.innerWidth, window.innerHeight) / 100;
+    const mix   = (a, b) => a + (b - a) * fadeNow;
+
+    flashlight.style.setProperty('--fx', flX + 'px');
+    flashlight.style.setProperty('--fy', flY + 'px');
+    flashlight.style.setProperty('--clear', mix(FLASH.startClear, FLASH.endClear) * vmin + 'px');
+    flashlight.style.setProperty('--fade',  mix(FLASH.startFade,  FLASH.endFade)  * vmin + 'px');
+    flashlight.style.setProperty('--dark',  FLASH.maxDark * (1 - fadeNow));
+}
+
+function goToSink4() {
+    sink.src = SCENE_4;
+    phone.classList.add('hidden');
+    eyeEls.forEach(el => el.classList.remove('hidden'));
+
+    eyesFound = 0;
+    fadeTarget = 0;
+    fadeNow = 0;
+    flX = mouseX;
+    flY = mouseY;
+    flashOn = true;
+    scene.classList.add('dark');
+    updateFlashlight();
+    layout();
+}
+
+function eyeFound(el) {
+    el.classList.add('hidden');
+    eyesFound++;
+    fadeTarget = eyesFound / EYES.length;     // each eye lifts the dark a bit more
+
+    if (eyesFound === EYES.length) {
+        blink(goToSink5);                      // last eye: blink into the next scene
+    }
+}
+
+function goToSink5() {
+    sink.src = SCENE_5;
+    homeLink.classList.remove('hidden');      // the mirror works again in this scene
+    flashOn = false;
+    scene.classList.remove('dark');
+    eyeEls.forEach(el => el.classList.add('hidden'));
+    layout();
+}
+
+document.addEventListener('click', (e) => {
+    const drain  = e.target.closest('.drain-eye');
+    const faucet = e.target.closest('.faucet-handle');
+    const phoneHit = e.target.closest('.phone');
+    const eyeHit = e.target.closest('.eyeball');
+    const link  = e.target.closest('.home-link');
+
+    if (drain) {
+        blink(goToSink2);
+    } else if (faucet) {
+        blink(goToSink3);
+    } else if (phoneHit) {
+        blink(goToSink4);
+    } else if (eyeHit) {
+        eyeFound(eyeHit);
+    } else if (link) {
+        // Navigate while the eyes are shut so the blink hides the page change
+        e.preventDefault();
+        blink(() => { window.location.href = link.href; });
+    }
 });
 
 function animate() {
+    updateFlashlight();
+    nx += (targetNX - nx) * PAN_EASE;
+    ny += (targetNY - ny) * PAN_EASE;
 
-    currentX += (targetX - currentX) * 0.06;
-    currentY += (targetY - currentY) * 0.06;
+    // Pan: mouse right -> reveal the right side, so the image slides left
+    const panX = -nx * maxPanX;
+    const panY = -ny * maxPanY;
 
-    sink.style.transform = `
-        translate(${currentX}px, ${currentY}px)
-        rotateY(${currentX * 0.25}deg)
-        rotateX(${-currentY * 0.25}deg)
-        scale(1.08)
+    // 2.5D tilt on top of the pan
+    const rotY =  nx * TILT_Y;
+    const rotX = -ny * TILT_X;
+
+    world.style.transform = `
+        translate(-50%, -50%)
+        translate3d(${panX}px, ${panY}px, 0)
+        rotateY(${rotY}deg)
+        rotateX(${rotX}deg)
     `;
 
     requestAnimationFrame(animate);
