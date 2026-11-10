@@ -76,6 +76,14 @@
       box-sizing: border-box;
       border: 3px solid #8e8e93;
       border-radius: 50%;
+      transition: filter .3s, border-color .3s;
+    }
+    /* same hover as the rest of the site: brighten + blue glow */
+    .home-button:hover,
+    .home-button:focus-visible {
+      border-color: #9fc3ff;
+      filter: brightness(1.7) drop-shadow(0 0 12px #9fc3ff);
+      outline: none;
     }
 
     .viewer {
@@ -144,11 +152,11 @@
       <a href="#view8"><img src="Ishaan_Images/Image8.jpg" alt="Photo 8"></a>
       <a href="#view9"><img src="Ishaan_Images/Image9.jpg" alt="Photo 9"></a>
 
-      <a class="home-tile" href="MADD draft Sophia.html"><img src="homepage.png" alt="Go home"></a>
+      <a class="home-tile" href="index.html"><img src="art_assets/homepagefinal.png" alt="Go home"></a>
     </div>
 
     <div class="home-bar">
-      <a class="home-button"></a>
+      <a class="home-button" href="index.html" aria-label="Home"></a>
     </div>
 
     <div class="viewer" id="view1">

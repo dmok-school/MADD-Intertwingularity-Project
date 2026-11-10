@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reflections</title>
+<style>
+:root{ --bg:#0b1324; --glow:#9fc3ff; color-scheme: dark; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+.page{position:fixed;inset:0}
+a{color:var(--glow)}
+:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+/* ---------- homepage ---------- */
+#home svg{width:100%;height:100%;display:block}
+.hot{cursor:pointer;transition:filter .3s, opacity .3s}
+/* same hover as the prototype (brighten + blue glow); the glow is wider because the painting is scaled down on screen */
+#home .hot:hover, #home a:focus-visible .hot{filter:brightness(1.7) drop-shadow(0 0 24px #9fc3ff)}
+#home a:focus-visible{outline:none}
+#home .hit{fill:transparent;stroke:transparent;stroke-width:2;vector-effect:non-scaling-stroke}
+body.debug #home .hit{stroke:#ff4d4d;stroke-dasharray:8 6}
+</style>
+</head>
+<body>
+
+<!-- =====================================================
+     HOMEPAGE: Danny's painting (the bathroom mirror).
+     Each hotspot redraws its own piece of the painting so it can brighten and
+     glow on hover, like the prototype. The edges are feathered with a blur
+     (stdDeviation in the <filter id="soft-..."> tags: bigger = softer). Shapes are drawn in the painting's own
+     pixel space (3840 x 2659). Add ?debug to the URL to outline every hotspot.
+     ===================================================== -->
+<section class="page" id="home" aria-label="Homepage: the bathroom mirror">
+  <svg viewBox="0 0 3840 2659" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A girl taking a mirror selfie in a tiled bathroom, with reflections receding into the mirror above a sink">
+    <defs>
+      <path id="sh-arya" d="M1955 238 L1975 265 L1995 255 L2005 290 L2010 325 L2000 345 L1985 375 L1965 360 L1950 382 L1930 355 L1905 362 L1920 335 L1898 310 L1925 295 L1915 265 L1940 270 Z"/>
+      <filter id="soft-arya" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+      <mask id="mask-arya" maskUnits="userSpaceOnUse" x="0" y="0" width="3840" height="2659"><use href="#sh-arya" transform="scale(1.66595)" fill="#fff" filter="url(#soft-arya)"/></mask>
+      <path id="sh-phone" d="M67 513 H478 V1650 H67 Z"/>
+      <filter id="soft-phone" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16"/></filter>
+      <mask id="mask-phone" maskUnits="userSpaceOnUse" x="0" y="0" width="3840" height="2659"><use href="#sh-phone" transform="scale(1.66595)" fill="#fff" filter="url(#soft-phone)"/></mask>
+      <path id="sh-first" d="M940 300 C945 240 990 205 1060 200 C1130 200 1180 240 1186 320 L1184 420 L1182 518 L1105 512 L1100 545 C1160 548 1260 585 1345 612 L1340 632 L1300 650 L1282 800 L920 800 L905 632 C960 600 1010 560 1035 545 L1030 510 L965 505 C945 470 938 380 940 300 Z M1237 437 H1297 V610 H1237 Z"/>
+      <filter id="soft-first" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16"/></filter>
+      <mask id="mask-first" maskUnits="userSpaceOnUse" x="0" y="0" width="3840" height="2659"><use href="#sh-first" transform="scale(1.66595)" fill="#fff" filter="url(#soft-first)"/></mask>
+      <path id="sh-sink" d="M765 1345 L1820 1345 L1815 1362 C1740 1430 1540 1545 1300 1555 C1060 1545 860 1430 800 1370 Z M1185 1550 H1415 V1596 H1185 Z M1165 1288 H1230 V1342 H1165 Z M1275 1232 H1330 V1342 H1275 Z M1372 1288 H1435 V1342 H1372 Z"/>
+      <filter id="soft-sink" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16"/></filter>
+      <mask id="mask-sink" maskUnits="userSpaceOnUse" x="0" y="0" width="3840" height="2659"><use href="#sh-sink" transform="scale(1.66595)" fill="#fff" filter="url(#soft-sink)"/></mask>
+    </defs>
+    <image href="art_assets/homepagefinal.png" x="0" y="0" width="3840" height="2659" preserveAspectRatio="xMidYMid slice"/>
+
+    <!-- deepest reflection (Arya): abstract -->
+    <a href="madd_project_most_distorted_aryab.html" aria-label="Complete Abstraction (Arya)">
+      <g class="hot">
+        <g mask="url(#mask-arya)"><svg x="3090" y="325" width="335" height="385" viewBox="3090 325 335 385" overflow="hidden"><image href="art_assets/homepagefinal.png" x="0" y="0" width="3840" height="2659"/></svg></g>
+        <use class="hit" href="#sh-arya" transform="scale(1.66595)"/>
+      </g>
+    </a>
+
+    <!-- the big phone in the foreground (Ishaan) -->
+    <a href="Intertwingularity_ishaan.html" aria-label="Dispersed Reflection (Ishaan)">
+      <g class="hot">
+        <g mask="url(#mask-phone)"><svg x="40" y="790" width="820" height="1869" viewBox="40 790 820 1869" overflow="hidden"><image href="art_assets/homepagefinal.png" x="0" y="0" width="3840" height="2659"/></svg></g>
+        <use class="hit" href="#sh-phone" transform="scale(1.66595)"/>
+      </g>
+    </a>
+
+    <!-- first reflection (Sophia): back of the head. Opens the first-reflection draft. -->
+    <a href="first-reflection-draft.html#first-reflection" aria-label="First reflection: click to step in">
+      <g class="hot">
+        <g mask="url(#mask-first)"><svg x="1430" y="260" width="880" height="1160" viewBox="1430 260 880 1160" overflow="hidden"><image href="art_assets/homepagefinal.png" x="0" y="0" width="3840" height="2659"/></svg></g>
+        <use class="hit" href="#sh-first" transform="scale(1.66595)"/>
+      </g>
+    </a>
+
+    <!-- sink below the mirror (Danny) -->
+    <a href="Intertwingularity_danny.html" aria-label="The Sink (Danny)">
+      <g class="hot">
+        <g mask="url(#mask-sink)"><svg x="1210" y="1985" width="1890" height="734" viewBox="1210 1985 1890 734" overflow="hidden"><image href="art_assets/homepagefinal.png" x="0" y="0" width="3840" height="2659"/></svg></g>
+        <use class="hit" href="#sh-sink" transform="scale(1.66595)"/>
+      </g>
+    </a>
+  </svg>
+</section>
+
+<script>
+// Add ?debug to the URL to outline every hotspot
+if (new URLSearchParams(location.search).has('debug')) document.body.classList.add('debug');
+</script>
+</body>
+</html>
