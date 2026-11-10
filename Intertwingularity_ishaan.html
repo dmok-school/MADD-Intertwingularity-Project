@@ -29,13 +29,13 @@
 
     .top-bar {
       color: white;
-      padding: 14px 16px 8px;
-      font-size: 22px;
+      padding: 10px 14px 6px;
+      font-size: 20px;
       font-weight: bold;
     }
     .top-bar small {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: normal;
       color: #8e8e93;
     }
@@ -63,7 +63,7 @@
     }
 
     .home-bar {
-      height: 64px;
+      height: 50px;
       background-color: #000;
       display: flex;
       align-items: center;
@@ -71,8 +71,8 @@
     }
     .home-button {
       display: block;
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       box-sizing: border-box;
       border: 3px solid #8e8e93;
       border-radius: 50%;
@@ -85,11 +85,14 @@
       filter: brightness(1.7) drop-shadow(0 0 12px #9fc3ff);
       outline: none;
     }
+    .home-button:hover {
+      border-color: #ffffff;
+    }
 
     .viewer {
       display: none;
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 64px;
+      top: 0; left: 0; right: 0; bottom: 50px;
       background-color: #000;
       color: white;
       text-align: center;
@@ -162,7 +165,6 @@
     <div class="viewer" id="view1">
       <a class="close" href="#">&lt; Photos</a>
       <img src="Ishaan_Images/Image1.jpg" alt="Photo 1">
-      
       <a class="next" href="#view2">&rsaquo;</a>
       <div class="caption">IMG_0001</div>
     </div>
@@ -229,6 +231,7 @@
       <a class="prev" href="#view8">&lsaquo;</a>
       <div class="caption">IMG_0009</div>
     </div>
+
   </div>
 
 </body>
