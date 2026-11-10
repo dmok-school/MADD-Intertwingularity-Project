@@ -3,55 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Infinite Reflection</title>
+  <title>Photos</title>
 
   <style>
     body {
-      background-color: #0b0b12;
-      color: #c9ccd6;
-      font-family: "Courier New", monospace;
+      background-color: #14213d;
       margin: 0;
-      padding: 0;
+      padding: 10px 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .phone {
+      position: relative;
+      width: min(400px, calc(44vh - 40px));
+      background-color: #111;
+      border: 10px solid #2b2f36;
+      border-radius: 36px;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      color: white;
+      padding: 14px 16px 8px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .top-bar small {
+      display: block;
+      font-size: 12px;
+      font-weight: normal;
+      color: #8e8e93;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .grid a {
+      display: block;
+    }
+    .grid img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      display: block;
+    }
+    .grid .home-tile {
+      grid-column: 1 / -1;
+    }
+    .grid .home-tile img {
+      aspect-ratio: auto;
+      height: auto;
+    }
+
+    .home-bar {
+      height: 64px;
+      background-color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .home-button {
+      display: block;
+      width: 40px;
+      height: 40px;
+      box-sizing: border-box;
+      border: 3px solid #8e8e93;
+      border-radius: 50%;
+    }
+
+    .viewer {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 64px;
+      background-color: #000;
+      color: white;
       text-align: center;
     }
-
-    .back {
+    .viewer:target {
       display: block;
-      padding: 16px;
-      color: #7f8bb3;
+    }
+    .viewer img {
+      width: 100%;
+      margin-top: 50px;
+      display: block;
+      -webkit-box-reflect: below 2px linear-gradient(transparent 70%, rgba(255,255,255,0.3));
+    }
+    .viewer a {
+      color: #0a84ff;
       text-decoration: none;
     }
-    .back:hover {
-      color: #ffffff;
+    .viewer .close { position: absolute; top: 14px; left: 14px; font-size: 16px; }
+    .viewer .prev, .viewer .next {
+      position: absolute;
+      bottom: 14px;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      line-height: 1;
     }
-
-    .note {
-      padding: 24px 16px;
-      font-size: 14px;
-      letter-spacing: 1px;
-    }
-
-    .reflection {
-      width: 500px;          
-      max-width: 100%;       
-      display: block;
-      margin: 0 auto;        
-      image-rendering: pixelated;
+    .viewer .prev { left: 20px; }
+    .viewer .next { right: 20px; }
+    .viewer .caption {
+      position: absolute;
+      bottom: 28px;
+      width: 100%;
+      font-size: 13px;
+      color: #8e8e93;
+      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
 
-  <a class="back" href="MADD draft Sophia.html">&larr; back to the mirror</a>
+  <div class="phone">
 
-  <p class="note">
-    keep scrolling
-  </p>
+    <div class="top-bar">
+      Photos
+      <small>10 items</small>
+    </div>
 
-  <img class="reflection" src="Ishaan_3.jpg" alt="A glitched photo of a campus library and a red tree, repeating and breaking apart as it goes down the page">
+    <div class="grid">
+      <a href="#view1"><img src="Ishaan_Images/Image1.jpg" alt="Photo 1"></a>
+      <a href="#view2"><img src="Ishaan_Images/Image2.jpg" alt="Photo 2"></a>
+      <a href="#view3"><img src="Ishaan_Images/Image3.jpg" alt="Photo 3"></a>
+      <a href="#view4"><img src="Ishaan_Images/Image4.jpg" alt="Photo 4"></a>
+      <a href="#view5"><img src="Ishaan_Images/Image5.jpg" alt="Photo 5"></a>
+      <a href="#view6"><img src="Ishaan_Images/Image6.jpg" alt="Photo 6"></a>
+      <a href="#view7"><img src="Ishaan_Images/Image7.jpg" alt="Photo 7"></a>
+      <a href="#view8"><img src="Ishaan_Images/Image8.jpg" alt="Photo 8"></a>
+      <a href="#view9"><img src="Ishaan_Images/Image9.jpg" alt="Photo 9"></a>
 
-  <a class="back" href="MADD draft Sophia.html">&larr; back to the mirror</a>
+      <a class="home-tile" href="MADD draft Sophia.html"><img src="homepage.png" alt="Go home"></a>
+    </div>
+
+    <div class="home-bar">
+      <a class="home-button"></a>
+    </div>
+
+    <div class="viewer" id="view1">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image1.jpg" alt="Photo 1">
+      
+      <a class="next" href="#view2">&rsaquo;</a>
+      <div class="caption">IMG_0001</div>
+    </div>
+
+    <div class="viewer" id="view2">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image2.jpg" alt="Photo 2">
+      <a class="prev" href="#view1">&lsaquo;</a>
+      <a class="next" href="#view3">&rsaquo;</a>
+      <div class="caption">IMG_0002</div>
+    </div>
+
+    <div class="viewer" id="view3">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image3.jpg" alt="Photo 3">
+      <a class="prev" href="#view2">&lsaquo;</a>
+      <a class="next" href="#view4">&rsaquo;</a>
+      <div class="caption">IMG_0003</div>
+    </div>
+
+    <div class="viewer" id="view4">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image4.jpg" alt="Photo 4">
+      <a class="prev" href="#view3">&lsaquo;</a>
+      <a class="next" href="#view5">&rsaquo;</a>
+      <div class="caption">IMG_0004</div>
+    </div>
+
+    <div class="viewer" id="view5">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image5.jpg" alt="Photo 5">
+      <a class="prev" href="#view4">&lsaquo;</a>
+      <a class="next" href="#view6">&rsaquo;</a>
+      <div class="caption">IMG_0005</div>
+    </div>
+
+    <div class="viewer" id="view6">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image6.jpg" alt="Photo 6">
+      <a class="prev" href="#view5">&lsaquo;</a>
+      <a class="next" href="#view7">&rsaquo;</a>
+      <div class="caption">IMG_0006</div>
+    </div>
+
+    <div class="viewer" id="view7">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image7.jpg" alt="Photo 7">
+      <a class="prev" href="#view6">&lsaquo;</a>
+      <a class="next" href="#view8">&rsaquo;</a>
+      <div class="caption">IMG_0007</div>
+    </div>
+
+    <div class="viewer" id="view8">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image8.jpg" alt="Photo 8">
+      <a class="prev" href="#view7">&lsaquo;</a>
+      <a class="next" href="#view9">&rsaquo;</a>
+      <div class="caption">IMG_0008</div>
+    </div>
+
+    <div class="viewer" id="view9">
+      <a class="close" href="#">&lt; Photos</a>
+      <img src="Ishaan_Images/Image9.jpg" alt="Photo 9">
+      <a class="prev" href="#view8">&lsaquo;</a>
+      <div class="caption">IMG_0009</div>
+    </div>
+  </div>
 
 </body>
 </html>
