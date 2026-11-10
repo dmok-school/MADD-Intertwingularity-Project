@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reflections</title>
+<style>
+:root{
+  --bg:#0b1324; --tile:#1d3566; --grout:#2d4b82; --frame:#070d1a; --ink:#d9e2f2; --muted:#8293b3;
+  --panel:rgba(7,13,26,.82); --glow:#9fc3ff; --data:#bfe0ff;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#c9d3e6; --panel:rgba(232,238,248,.9); --ink:#0f1a30; --muted:#43557a; --glow:#2f5fb8; --data:#16305e; color-scheme: light; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Verdana,Tahoma,sans-serif;font-size:13px;overflow:hidden}
+.page{position:fixed;inset:0;display:none}
+.page.on{display:block}
+a{color:var(--glow)}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--muted);padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--glow)}
+:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+/* ---------- homepage ---------- */
+#home svg{width:100%;height:100%;display:block;background:#1b3263}
+.hot{cursor:pointer;transition:filter .3s, opacity .3s}
+.hot:hover{filter:brightness(1.7) drop-shadow(0 0 12px #9fc3ff)}
+.hot.soon{cursor:help}
+.hot.soon:hover{filter:brightness(1.25)}
+
+/* ---------- first reflection ---------- */
+#reflection{background-color:#1d3566}
+#refWall{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#reflection::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(3,6,14,.75) 100%);pointer-events:none}
+#wall{position:absolute;inset:0;pointer-events:none;z-index:1}
+.qtile{position:absolute;width:142px;min-height:70px;padding:6px;font-size:10px;line-height:1.35;color:var(--data);background:rgba(10,20,44,.72);border:1px solid #3b5d99;opacity:0;transform:scale(.6);transition:opacity .6s, transform .6s}
+.qtile.in{opacity:1;transform:scale(1)}
+.qtile b{display:block;font-weight:400;font-size:11.5px;color:#fff;margin-bottom:3px}
+@media (prefers-color-scheme: light){ .qtile{background:rgba(232,238,248,.85);border-color:#6f8fca} .qtile b{color:#0f1a30} }
+
+#stage{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:min(380px,70vw);aspect-ratio:4/5;perspective:1100px;z-index:2}
+#turner{position:absolute;inset:0;transform-style:preserve-3d;cursor:grab}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg)}
+.face svg{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+
+#hud{position:absolute;top:14px;right:14px;z-index:3;background:var(--panel);padding:12px 14px;min-width:230px;line-height:1.7;border:1px solid #2d4b82}
+#hud .big{font-size:22px;font-family:"Courier New",monospace}
+#hud .zero{color:#ff8a8a}
+#status{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;background:var(--panel);padding:10px 16px;max-width:min(640px,92vw);text-align:center;line-height:1.55;min-height:2.6em}
+#back{position:absolute;top:14px;left:14px;z-index:3}
+#searchbar{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;width:min(560px,92vw)}
+#searchbar .lbl{color:#cfe0ff;font-weight:bold;font-size:12px;white-space:nowrap}
+@media (prefers-color-scheme: light){ #searchbar .lbl{color:#0f1a30} }
+#searchbar .box{flex:1;background:#fff;color:#000;border:2px inset #c8c8c8;padding:4px 7px;font-size:14px;min-height:28px;white-space:nowrap;overflow:hidden}
+#searchbar .caret{display:inline-block;width:1px;height:1em;background:#000;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#searchbar .go{background:linear-gradient(#fdfdfd,#d6d6d6);color:#000;border:1px solid #8a8a8a;border-radius:3px;padding:4px 12px;font-size:12px}
+#searchbar .go.pressed{background:linear-gradient(#cfcfcf,#f2f2f2)}
+.qtile.fly{transition:left .9s cubic-bezier(.3,.7,.2,1), top .9s cubic-bezier(.3,.7,.2,1), opacity .4s, transform .9s}
+#deeper{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);z-index:3;display:none}
+#status:empty{display:none}
+
+@media (prefers-reduced-motion: reduce){ .qtile{transition:none} }
+</style>
+</head>
+<body>
+
+<!-- =====================================================
+     HOMEPAGE: rough placeholder for Danny's painting
+     ===================================================== -->
+<section class="page" id="home" aria-label="Homepage: the bathroom mirror">
+  <svg id="homeArt" viewBox="0 0 1456 812" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A girl in a blue-tiled bathroom takes a mirror selfie with a flip phone. Behind her, reflections recede into the mirror, each one stranger than the last.">
+    <defs>
+      <!-- fine grime and speckle over the whole painting -->
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="4" stitchTiles="stitch"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .03  0 0 0 0 .06  0 0 0 0 .14  0 0 0 1.3 -.45"/>
+      </filter>
+      <!-- large soft blotches, like worn glaze -->
+      <filter id="mottle" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="4" seed="11"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .55  0 0 0 0 .68  0 0 0 0 .95  0 0 0 1.4 -.62"/>
+      </filter>
+      <filter id="soft"><feGaussianBlur stdDeviation=".6"/></filter>
+      <linearGradient id="glassShade" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#0a1633" stop-opacity=".18"/><stop offset="1" stop-color="#050b1c" stop-opacity=".5"/>
+      </linearGradient>
+      <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#cfe0ff" stop-opacity=".06"/><stop offset=".5" stop-color="#cfe0ff" stop-opacity="0"/><stop offset=".55" stop-color="#cfe0ff" stop-opacity=".04"/><stop offset="1" stop-color="#cfe0ff" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="vignette" cx=".45" cy=".45" r=".75">
+        <stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#01030a" stop-opacity=".55"/>
+      </radialGradient>
+      <pattern id="tilesFace" width="7" height="7" patternUnits="userSpaceOnUse">
+        <rect width="7" height="7" fill="#2b4b86"/><path d="M0 0 H7 M0 0 V7" stroke="#0b1530" stroke-width="1.2"/>
+      </pattern>
+      <clipPath id="clipGlass"><rect x="152" y="72" width="1164" height="431"/></clipPath>
+      <clipPath id="clipA"><rect x="682" y="97" width="614" height="296"/></clipPath>
+      <clipPath id="clipRoom"><rect x="109" y="42" width="1232" height="696"/></clipPath>
+    </defs>
+
+    <!-- the real wall -->
+    <g id="wallTiles"></g>
+
+    <!-- outer frame: the reflected room -->
+    <rect x="105" y="38" width="1240" height="704" fill="none" stroke="#050912" stroke-width="7"/>
+    <g clip-path="url(#clipRoom)"><g id="roomTiles"></g><rect x="109" y="42" width="1232" height="696" fill="#071025" opacity=".22"/></g>
+
+    <!-- the mirror glass -->
+    <rect x="146" y="66" width="1176" height="443" fill="#060a14"/>
+    <g clip-path="url(#clipGlass)">
+      <g id="glassTiles"></g>
+      <g id="sideWall"></g>
+      <rect x="152" y="72" width="1164" height="431" fill="url(#glassShade)"/>
+
+      <!-- nested mirrors -->
+      <rect x="676" y="91" width="626" height="308" fill="#05080f"/>
+      <g clip-path="url(#clipA)"><g id="aTiles"></g><rect x="682" y="97" width="614" height="296" fill="#040916" opacity=".42"/></g>
+      <rect x="697" y="108" width="587" height="188" fill="none" stroke="#05080f" stroke-width="6"/>
+      <rect x="745" y="116" width="535" height="176" fill="#0a1328" opacity=".55"/>
+      <rect x="922" y="126" width="360" height="118" fill="#03060d"/>
+      <rect x="930" y="132" width="346" height="106" fill="#0b1630"/>
+      <g id="deepTiles"></g>
+      <rect x="930" y="132" width="346" height="106" fill="#02040b" opacity=".45"/>
+
+      <!-- deepest reflection: Arya (abstract) -->
+      <g class="hot soon" id="arya">
+        <rect x="1196" y="134" width="80" height="104" fill="transparent"/>
+        <g id="aryaShape" opacity=".8"></g>
+      </g>
+      <!-- eye-bar reflection -->
+      <g opacity=".78" id="eyebar"></g>
+      <!-- long-haired reflection -->
+      <g opacity=".8" id="longhair"></g>
+      <!-- middle reflection: Ishaan (face replaced by tiles) -->
+      <g class="hot soon" id="ishaan"></g>
+      <!-- first reflection: Sophia (back of the head) -->
+      <g class="hot" id="toFirst" tabindex="0" role="link" aria-label="Enter the first reflection"></g>
+
+      <rect x="152" y="72" width="1164" height="431" fill="url(#sheen)" style="pointer-events:none"/>
+    </g>
+
+    <!-- the sink below the mirror: Danny -->
+    <g class="hot soon" id="sink"></g>
+
+    <!-- the girl herself -->
+    <g id="girl"></g>
+
+    <!-- foreground: a second phone screen held up to the viewer -->
+    <g id="foreground"></g>
+
+    <!-- texture passes -->
+    <rect width="1456" height="812" filter="url(#mottle)" opacity=".16" style="mix-blend-mode:screen;pointer-events:none"/>
+    <rect width="1456" height="812" filter="url(#grain)" opacity=".18" style="pointer-events:none"/>
+    <rect width="1456" height="812" fill="url(#vignette)" style="pointer-events:none"/>
+  </svg>
+</section>
+
+
+<!-- =====================================================
+     SUBPAGE: the first reflection (Sophia)
+     ===================================================== -->
+<section class="page" id="reflection" aria-label="The first reflection">
+  <svg id="refWall" aria-hidden="true"></svg>
+  <div id="wall"></div>
+  <button id="back">&larr; Back to the mirror</button>
+
+  <div id="hud" aria-live="polite">
+    <div>Times you tried to turn her</div>
+    <div class="big" id="tries">0</div>
+    <div>Times you saw her face</div>
+    <div class="big zero" id="faces">0</div>
+  </div>
+
+  <div id="stage">
+    <div id="turner" tabindex="0" role="button" aria-label="The reflection, facing away. Hover, click, or press Enter to try to turn her around.">
+      <div class="face front"></div>
+      <div class="face back"></div>
+    </div>
+  </div>
+
+  <div id="searchbar" aria-hidden="true"><span class="lbl">AOL Search</span><span class="box"><span id="typed"></span><span class="caret"></span></span><span class="go" id="go">Search</span></div>
+  <div id="status" aria-live="polite"></div>
+  <button id="deeper">Go deeper</button>
+</section>
+
+<!-- shared texture and shading definitions for the subpage (kept rendered so both sides of the figure can use them) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="figTex" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .62  0 0 0 0 .7  0 0 0 0 .92  0 0 0 .13 -.03" result="speck"/>
+      <feComposite in="speck" in2="SourceAlpha" operator="in" result="sp"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sp"/></feMerge>
+    </filter>
+    <filter id="refGrain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="7" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .03  0 0 0 0 .06  0 0 0 0 .14  0 0 0 1.3 -.45"/>
+    </filter>
+    <filter id="refMottle" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".008" numOctaves="4" seed="19"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .55  0 0 0 0 .68  0 0 0 0 .95  0 0 0 1.4 -.62"/>
+    </filter>
+    <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b303b"/><stop offset=".45" stop-color="#1e222a"/><stop offset="1" stop-color="#14171d"/>
+    </linearGradient>
+    <linearGradient id="jacketGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#333a4a"/><stop offset=".6" stop-color="#272c38"/><stop offset="1" stop-color="#1b1f28"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- the back of her head: used on BOTH sides of the figure, so no angle ever shows a face -->
+<template id="figureArt">
+  <svg viewBox="0 0 400 500" aria-hidden="true">
+    <g filter="url(#figTex)">
+      <!-- jacket -->
+      <path d="M40 500 C40 372 110 316 200 304 C290 316 360 372 360 500 Z" fill="url(#jacketGrad)"/>
+      <path d="M40 500 C44 412 80 354 132 330 L120 418 L98 500 Z" fill="#1a1e27" opacity=".9"/>
+      <path d="M210 338 C252 342 300 360 330 400 L304 422 C274 392 244 372 212 362 Z" fill="#40475a" opacity=".95"/>
+      <path d="M150 418 L190 398 L196 470 L160 492 Z" fill="#383f50" opacity=".9"/>
+      <path d="M238 430 L282 412 L292 500 L246 500 Z" fill="#181b23" opacity=".9"/>
+      <path d="M74 460 L118 440 L112 500 L70 500 Z" fill="#323848" opacity=".85"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M118 380 C148 400 168 430 176 472" stroke="#171a21" stroke-width="2.4"/>
+        <path d="M282 382 C258 404 238 432 232 474" stroke="#171a21" stroke-width="2.4"/>
+        <path d="M200 336 L200 500" stroke="#1a1d25" stroke-width="1.6" opacity=".8"/>
+        <path d="M136 342 C150 380 152 430 146 500" stroke="#4a5263" stroke-width="1.4" opacity=".8"/>
+        <path d="M262 346 C286 372 300 400 306 430" stroke="#4c5466" stroke-width="1.4" opacity=".8"/>
+        <path d="M96 400 C110 420 120 450 122 490" stroke="#151820" stroke-width="1.6" opacity=".8"/>
+        <path d="M170 486 C190 478 214 478 236 488" stroke="#161920" stroke-width="1.6" opacity=".7"/>
+      </g>
+      <!-- raised arm and sleeve -->
+      <path d="M286 364 C308 374 328 402 342 434 L324 442 C310 412 294 388 278 374 Z" fill="#20242e"/>
+      <path d="M324 442 L342 434 L386 308 L364 300 Z" fill="#2b303c"/>
+      <path d="M342 434 L386 308 L380 306 L334 432 Z" fill="#3b4252" opacity=".9"/>
+      <g fill="none" stroke="#181b22" stroke-width="1.6" stroke-linecap="round">
+        <path d="M340 400 C348 398 356 402 360 406"/><path d="M350 370 C358 368 366 372 370 376"/><path d="M332 420 C338 416 346 418 350 424"/>
+      </g>
+      <path d="M362 300 L388 308 L385 320 L358 312 Z" fill="#3a4050"/>
+      <!-- collar and neck -->
+      <rect x="178" y="250" width="44" height="58" fill="#4b5263"/>
+      <path d="M178 250 H222 V272 C210 268 190 268 178 272 Z" fill="#353a48"/>
+      <path d="M200 270 L200 306" stroke="#424858" stroke-width="2" opacity=".8"/>
+      <path d="M144 314 C170 300 230 300 256 314 L252 338 C228 326 172 326 148 338 Z" fill="#23272f"/>
+      <path d="M146 316 C172 302 228 302 254 316" fill="none" stroke="#4a5262" stroke-width="1.6"/>
+      <path d="M158 330 C182 320 218 320 242 330" fill="none" stroke="#191c23" stroke-width="1.4"/>
+      <path d="M150 338 L164 352 M250 338 L236 352" stroke="#1a1d24" stroke-width="1.6"/>
+      <!-- hair -->
+      <path d="M96 236 C80 110 140 34 200 34 C262 34 322 110 306 236 L292 228 L284 252 L268 232 L258 256 L242 236 L230 260 L214 238 L200 262 L186 238 L172 260 L158 236 L146 256 L132 232 L118 252 L108 228 Z" fill="url(#hairGrad)"/>
+      <path d="M100 196 C140 214 262 214 302 196 L306 236 L292 228 L284 252 L268 232 L258 256 L242 236 L230 260 L214 238 L200 262 L186 238 L172 260 L158 236 L146 256 L132 232 L118 252 L108 228 L96 236 Z" fill="#13161c" opacity=".75"/>
+      <g class="hairStrands"></g>
+      <g class="hairShine"></g>
+      <!-- flip phone, seen from the back -->
+      <rect x="354" y="236" width="34" height="72" rx="4" fill="#34433f"/>
+      <rect x="354" y="268" width="34" height="6" fill="#26312e"/>
+      <rect x="356" y="238" width="30" height="28" rx="3" fill="#3c4d49"/>
+      <rect x="359" y="242" width="24" height="20" rx="2" class="phoneScreen" fill="#24333a"/>
+      <circle cx="371" cy="288" r="5" fill="#0f1416" stroke="#5b6b68" stroke-width="1.6"/>
+      <path d="M362 296 L380 296" stroke="#2a3532" stroke-width="1.5"/>
+      <text class="phoneTime" x="371" y="256" text-anchor="middle" font-family="Courier New, monospace" font-size="8" fill="#0b1a24"></text>
+      <!-- hand gripping the phone -->
+      <path d="M350 298 C360 288 384 288 394 300 C396 314 390 324 376 326 C362 326 352 318 350 298 Z" fill="#545b6b"/>
+      <path d="M352 304 C362 300 382 300 392 306 M352 313 C362 309 382 309 390 315" fill="none" stroke="#3e4452" stroke-width="1.3"/>
+      <path d="M356 298 C364 294 378 294 388 298" fill="none" stroke="#6b7282" stroke-width="1.6" opacity=".8"/>
+    </g>
+    <text x="200" y="384" text-anchor="middle" font-family="Courier New, monospace" font-size="13" fill="#7f93bd" letter-spacing="2">AnonID 10288049</text>
+    <g class="headData" opacity="0">
+      <rect x="118" y="96" width="164" height="128" rx="10" fill="#071226" opacity=".55"/>
+      <text class="hq" x="200" y="132" text-anchor="middle" font-family="Courier New, monospace" font-size="17" font-weight="bold" fill="#cfe6ff"></text>
+      <text class="ht" x="200" y="206" text-anchor="middle" font-family="Courier New, monospace" font-size="11" fill="#9fc3ff"></text>
+    </g>
+  </svg>
+</template>
+
+
+<script>
+/* ---------- homepage painting: tiles, cel-shaded figures and messy hair, drawn in code ---------- */
+(function buildHome(){
+  const NS = 'http://www.w3.org/2000/svg';
+  let seed = 10288049;
+  const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const el = (parent, tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  const P = (parent, d, fill, extra = {}) => el(parent, 'path', Object.assign({d, fill}, extra));
+  const g = id => document.getElementById(id);
+
+  // glazed tiles: each one a slightly different blue, with a pale grout and a worn bevel
+  function tiles(parent, x0, y0, w, h, size, light, sat, grout, skew = 0){
+    el(parent, 'rect', {x: x0, y: y0, width: w, height: h, fill: grout});
+    for (let y = y0; y < y0 + h; y += size) for (let x = x0 - size; x < x0 + w; x += size){
+      const sx = x + (y - y0) * skew;
+      const L = light + (R() - .5) * 5, S = sat + (R() - .5) * 8, H = 218 + (R() - .5) * 6;
+      el(parent, 'rect', {x: sx + 2, y: y + 2, width: size - 3.4, height: size - 3.4, fill: `hsl(${H} ${S}% ${L}%)`});
+      el(parent, 'path', {d: `M${sx + 3} ${y + size - 3} V${y + 3} H${sx + size - 3}`, fill: 'none', stroke: `hsl(${H} 60% ${L + 9}%)`, 'stroke-width': 1.3, opacity: .55});
+      el(parent, 'path', {d: `M${sx + 3} ${y + size - 2.5} H${sx + size - 2.5} V${y + 3}`, fill: 'none', stroke: `hsl(${H} 50% ${L - 7}%)`, 'stroke-width': 1.2, opacity: .6});
+      if (R() < .25) el(parent, 'rect', {x: sx + 4 + R() * (size - 16), y: y + 4 + R() * (size - 16), width: 4 + R() * 9, height: 3 + R() * 6, fill: `hsl(${H} 40% ${L + 6}%)`, opacity: .35});
+    }
+  }
+  tiles(g('wallTiles'), 0, -4, 1456, 820, 52, 33, 52, '#5b79ad');
+  tiles(g('roomTiles'), 109, 40, 1232, 700, 46, 29, 48, '#47649a');
+  tiles(g('glassTiles'), 152, 70, 1164, 436, 40, 20, 45, '#2a426f');
+  tiles(g('aTiles'), 682, 95, 614, 300, 30, 15, 42, '#1d3157');
+  tiles(g('deepTiles'), 930, 130, 346, 110, 22, 11, 40, '#14233f');
+
+  // the side wall in the top-left of the glass, tiles bending into perspective
+  const sw = g('sideWall');
+  P(sw, 'M152 72 L640 72 L660 98 L152 300 Z', '#0f1d3c', {opacity: .55});
+  for (let i = 0; i <= 9; i++){ const y = 72 + i * 26; el(sw, 'path', {d: `M152 ${y} L660 ${98 - (98 - 72) * (i / 9) * .2 + i * 1.5}`, stroke: '#3d5b92', 'stroke-width': 1.2, opacity: .22, fill: 'none'}); }
+  for (let i = 0; i < 14; i++){ const x = 152 + Math.pow(i / 13, .8) * 500; el(sw, 'path', {d: `M${x} 72 L${x + 4} ${300 - (x - 152) * .41}`, stroke: '#3d5b92', 'stroke-width': 1.1, opacity: .2, fill: 'none'}); }
+
+  // messy hair: a dark mass plus many tapered strands and a few blue-white highlights
+  function strand(parent, rx, ry, tx, ty, w, fill, bend = 0){
+    const mx = (rx + tx) / 2 + bend, my = (ry + ty) / 2;
+    P(parent, `M${rx - w/2} ${ry} Q${mx - w/3} ${my} ${tx} ${ty} Q${mx + w/3} ${my} ${rx + w/2} ${ry} Z`, fill);
+  }
+  function hairArc(parent, cx, cy, rx, ry, a0, a1, n, lenMin, lenMax, wMin, wMax, fill, spread = .25){
+    for (let i = 0; i < n; i++){
+      const a = a0 + (a1 - a0) * (i + R() * .8) / n, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
+      const len = lenMin + R() * (lenMax - lenMin), out = Math.cos(a) * spread * len;
+      strand(parent, x, y, x + out + (R() - .5) * 18, y + len, wMin + R() * (wMax - wMin), fill, (R() - .5) * 20);
+    }
+  }
+  function flyaways(parent, cx, cy, r, n, color){
+    for (let i = 0; i < n; i++){
+      const a = -Math.PI * (.15 + R() * .7), x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * .9;
+      const ex = x + Math.cos(a) * (6 + R() * 14) + (R() - .5) * 16, ey = y + Math.sin(a) * (4 + R() * 10) + 6;
+      el(parent, 'path', {d: `M${x} ${y} Q${(x + ex) / 2 + (R() - .5) * 20} ${(y + ey) / 2 - 10} ${ex} ${ey}`, stroke: color, 'stroke-width': .9 + R(), fill: 'none', 'stroke-linecap': 'round'});
+    }
+  }
+  function shine(parent, pts, color, op = .8){ pts.forEach(([x, y, w, rot]) => P(parent, `M${x} ${y} q${w * .5} ${-w * .25} ${w} 0 q${-w * .5} ${w * .12} ${-w} 0 Z`, color, {opacity: op, transform: `rotate(${rot} ${x} ${y})`})); }
+
+  /* ---- the girl ---- */
+  const G = g('girl');
+  P(G, 'M262 300 C246 190 300 116 372 114 C452 114 500 180 488 300 L478 420 L270 420 Z', '#101217');            // back hair
+  hairArc(G, 372, 255, 110, 130, Math.PI * .55, Math.PI * .98, 12, 120, 210, 14, 26, '#121419', .18);
+  hairArc(G, 372, 255, 112, 130, Math.PI * .02, Math.PI * .45, 12, 120, 205, 14, 26, '#121419', .18);
+  // everything below is traced in the painting's own pixel space, then scaled to fit
+  const T = 'matrix(1.148 0 0 1.14 0 0)';
+  const C = {skin: '#7a7e8c', skinLt: '#868a98', skinSh: '#6a6e7c', skinDp: '#545866', line: '#1c1f27',
+             shLt: '#a4afc3', shHi: '#b9c3d5', shMid: '#7f8aa0', shDk: '#6a7490'};
+  const B = el(G, 'g', {transform: T});
+
+  // neck, with the jaw's shadow falling across it
+  P(B, 'M300 300 L347 296 L350 376 L298 376 Z', '#676b79');
+  P(B, 'M296 304 C305 318 315 324 320 324 C330 323 341 315 350 302 L350 346 C335 354 312 354 297 342 Z', C.skinDp);
+  P(B, 'M313 352 L331 350 L333 376 L312 376 Z', '#707482', {opacity: .85});
+
+  // T-shirt: a mid tone, then flat light planes and hard-edged fold shadows on top
+  P(B, 'M257 373 C275 365 292 368 300 372 C315 390 335 392 352 374 C375 372 410 372 437 377 C455 400 466 425 472 452 L433 495 L443 650 L257 650 Z', C.shMid);
+  P(B, 'M257 380 C275 372 292 372 300 376 L298 400 L257 401 Z', C.shLt);
+  P(B, 'M352 376 C380 374 410 374 437 380 C452 402 462 425 468 448 L420 470 L398 398 Z', C.shLt);
+  P(B, 'M257 397 C290 392 340 388 387 390 L392 488 L360 484 L340 492 L313 491 L310 474 L290 484 L273 481 L257 474 Z', C.shLt);
+  P(B, 'M300 398 C320 394 350 392 372 396 L366 420 C340 414 318 416 300 424 Z', C.shHi, {opacity: .7});
+  P(B, 'M257 395 L307 420 L283 431 L257 417 Z', C.shMid);
+  P(B, 'M340 403 L387 380 L403 387 L380 407 L350 413 Z', C.shMid);
+  P(B, 'M380 392 L397 387 L392 487 L383 487 Z', C.shMid);
+  P(B, 'M403 447 L463 440 L470 457 L417 478 L403 467 Z', C.shDk);
+  P(B, 'M418 403 L433 397 L437 417 L423 418 Z', C.shMid);
+  P(B, 'M440 384 C452 404 460 424 466 446 L452 446 C448 426 444 404 440 384 Z', C.shMid, {opacity: .8});
+  // lower torso: darker cloth with pale creases running down it
+  P(B, 'M315 510 L330 507 L327 588 L318 574 Z', C.shLt);
+  P(B, 'M357 513 L373 510 L361 571 L350 581 Z', C.shLt);
+  P(B, 'M383 557 L390 553 L398 601 L387 594 Z', C.shLt);
+  P(B, 'M320 607 C334 602 352 601 363 603 L370 617 C356 616 340 617 327 621 Z', C.shLt);
+  P(B, 'M403 497 L430 507 L434 574 L417 553 Z', '#8e99ae');
+  P(B, 'M390 513 L437 527 L437 541 L397 528 Z', C.shLt, {opacity: .85});
+  P(B, 'M300 520 L312 515 L306 600 L298 611 Z', C.shDk);
+  P(B, 'M338 540 L348 530 L345 621 L336 631 Z', C.shDk);
+  P(B, 'M405 600 L420 590 L428 646 L410 649 Z', C.shDk);
+  P(B, 'M262 560 L285 545 L290 640 L268 650 Z', C.shDk, {opacity: .7});
+  P(B, 'M375 625 L398 612 L402 650 L380 650 Z', '#8e99ae', {opacity: .8});
+  // crew neck collar and the dark gap inside it
+  P(B, 'M294 374 C306 388 338 388 350 374 L352 382 C338 398 306 398 292 382 Z', '#4f5361');
+  P(B, 'M291 372 C304 388 340 390 353 372 L357 376 C343 396 303 396 288 377 Z', C.shHi);
+  P(B, 'M433 495 L472 452', 'none', {stroke: C.shDk, 'stroke-width': 2});
+
+  // forearm rising to the phone
+  P(B, 'M436 470 C448 462 460 457 472 451 C484 445 492 440 497 432 L501 470 C503 510 500 545 492 565 C484 572 470 574 462 570 C455 555 448 530 441 505 Z', '#6a6e7b');
+  P(B, 'M458 478 C464 474 470 472 475 470 C478 500 479 526 474 546 L466 549 C464 526 462 500 458 478 Z', '#878b96');
+  P(B, 'M462 560 C470 566 484 566 492 560 L490 568 C482 574 470 574 462 568 Z', '#5a5e6a');
+  // flip phone
+  P(G, 'M504 320 H557 V500 H504 Z', '#37474a');
+  P(G, 'M508 324 H553 V398 H508 Z', '#3f5154');
+  P(G, 'M508 398 H553 V496 H508 Z', '#334144');
+  P(G, 'M516 412 L531 392 L546 412 Z', 'none', {stroke: '#202a2c', 'stroke-width': 2});
+  el(G, 'circle', {cx: 531, cy: 405, r: 7, fill: '#0f1416', stroke: '#5a6b6e', 'stroke-width': 2});
+  // hand wrapped around the phone
+  const H = el(G, 'g', {transform: T});
+  P(H, 'M447 383 C460 376 480 375 490 378 C498 386 502 400 499 414 C497 426 492 436 482 441 C470 444 458 441 451 432 C446 420 444 400 447 383 Z', '#6f7380');
+  P(H, 'M447 383 C442 392 440 404 444 416 L452 414 C450 402 452 392 455 386 Z', '#7b7f8c');
+  ['M455 393 C466 388 480 388 490 392', 'M455 408 C466 404 480 404 491 407', 'M458 423 C468 420 480 420 489 424'].forEach(d => P(H, d, 'none', {stroke: '#8d919c', 'stroke-width': 2.2, 'stroke-linecap': 'round', opacity: .75}));
+  ['M454 400 C466 397 480 397 492 400', 'M456 416 C467 413 480 413 491 416'].forEach(d => P(H, d, 'none', {stroke: '#535764', 'stroke-width': 1}));
+
+  // face: flat planes of light and shadow, like the painting
+  const Fc = el(G, 'g', {transform: T});
+  P(Fc, 'M268 200 C266 230 268 250 273 262 C278 282 288 300 300 310 C308 318 315 322 320 323 C327 322 338 314 352 303 C364 290 374 276 377 262 C381 245 382 222 380 200 C370 175 345 163 323 163 C300 163 276 176 268 200 Z', C.skin);
+  P(Fc, 'M290 176 C305 170 340 170 358 178 L352 208 C340 202 306 202 292 208 Z', C.skinLt, {opacity: .8});
+  P(Fc, 'M268 202 C300 216 350 216 380 206 L380 220 C350 228 300 228 268 218 Z', C.skinSh, {opacity: .55});
+  P(Fc, 'M272 250 C300 260 350 260 378 250 L375 270 C350 278 300 278 274 270 Z', '#737785', {opacity: .7});
+  P(Fc, 'M366 212 C378 232 378 262 370 282 C362 296 352 305 342 312 C356 290 366 262 366 212 Z', C.skinSh);
+  P(Fc, 'M290 282 C305 291 340 291 358 282 C350 301 335 315 320 319 C305 315 294 301 290 282 Z', C.skinLt, {opacity: .55});
+  P(Fc, 'M300 310 C310 318 316 322 320 323 C326 322 334 317 342 311 C334 320 326 326 320 326 C313 326 306 320 300 310 Z', C.skinDp, {opacity: .7});
+
+  // half-closed, tired eyes, drawn once and mirrored for the other side
+  function eye(cx, cy, flip){
+    const E = el(Fc, 'g', {transform: `translate(${cx} ${cy}) scale(${flip ? -1.22 : 1.22} 1.22)`});
+    P(E, 'M-18 -1 C-10 -8 6 -9 14 -4 C8 4 -8 6 -18 -1 Z', '#9094a2');
+    el(E, 'circle', {cx: -1, cy: 0, r: 6.6, fill: '#717586', stroke: '#545868', 'stroke-width': .9});
+    P(E, 'M-6 3 C-3 6 2 6 5 3', 'none', {stroke: '#8f93a2', 'stroke-width': 1.4});
+    el(E, 'circle', {cx: -1, cy: .4, r: 2.7, fill: '#383b46'});
+    el(E, 'circle', {cx: 1.4, cy: -1.6, r: 1.1, fill: '#c6c9d3'});
+    P(E, 'M-20 -2 C-10 -10 6 -11 16 -5 L16 -12 C6 -18 -10 -17 -20 -10 Z', C.skin);            // heavy lid over the iris
+    P(E, 'M-22 -1 C-12 -10 4 -12 15 -6 C17 -5 18 -3 18 -1 C6 -7 -8 -6 -20 1 Z', C.line);     // upper lash line
+    P(E, 'M-20 -1 L-28 3.5 L-19 2 Z', C.line);
+    P(E, 'M-24 1 L-29 7 L-21 2.5 Z', C.line, {opacity: .8});
+    P(E, 'M-16 -12 C-6 -17 6 -17 14 -13', 'none', {stroke: '#545866', 'stroke-width': .9});   // lid crease
+    P(E, 'M-14 3 C-5 7 6 7 13 1', 'none', {stroke: '#4a4e5b', 'stroke-width': .9});          // lower lid
+    [-9, -4, 1, 6].forEach(x => P(E, `M${x} ${5.5 + Math.abs(x) * .05} l${-.6 + R() * .4} 3.4`, 'none', {stroke: '#3c3f4b', 'stroke-width': .7}));
+    P(E, 'M-9 11 C-1 13.5 6 13.5 11 10', 'none', {stroke: '#626674', 'stroke-width': .8, opacity: .8}); // tired bag under the eye
+    P(E, 'M-13 -25 C-4 -28 6 -29 14 -27', 'none', {stroke: '#3a3d48', 'stroke-width': 1.3, opacity: .55});
+  }
+  eye(292, 231, false);
+  eye(355, 230, true);
+
+  // long thin nose highlight, small shadow under it
+  P(Fc, 'M320.5 247 C322 245.5 324.5 245.5 325.2 248 L325.6 274 C324.2 276.5 321.8 276.5 320.8 274 Z', '#a7aab5');
+  P(Fc, 'M326.5 252 L331 277 L326.5 279 Z', C.skinSh, {opacity: .6});
+  P(Fc, 'M314 281.5 C318.5 284.5 324 284.5 328.5 281', 'none', {stroke: '#535764', 'stroke-width': 1.2, 'stroke-linecap': 'round'});
+  // small, closed mouth turned down a little at the corners
+  P(Fc, 'M311.5 303 C317 300.5 328 300.2 334.5 303', 'none', {stroke: '#474b57', 'stroke-width': 1.5, 'stroke-linecap': 'round'});
+  P(Fc, 'M310.6 302.6 l-1.6 1.6 M335.2 302.6 l1.6 1.6', 'none', {stroke: '#4f5360', 'stroke-width': 1});
+  P(Fc, 'M316 306 C321 308.5 328 308.5 331 305.6', 'none', {stroke: '#8f93a0', 'stroke-width': 1.7, 'stroke-linecap': 'round', opacity: .7});
+  P(Fc, 'M318 311.5 C322 313 327 313 330 311.5', 'none', {stroke: '#636775', 'stroke-width': .9});
+  // bangs and side strands over the face
+  const bangs = el(G, 'g', {});
+  P(bangs, 'M300 230 C296 170 330 140 372 140 C420 140 448 172 446 228 C430 196 404 180 372 180 C340 180 314 198 300 230 Z', '#15171d');
+  const roots = Array.from({length: 24}, () => 300 + R() * 150).sort((a, b) => a - b);
+  roots.forEach((rx, i) => {
+    const c = (rx - 375) / 75, ry = 150 + Math.abs(c) * 16 + R() * 10;
+    const len = Math.abs(c) < .62 ? 36 + R() * 58 : 70 + R() * 110 + Math.abs(c) * 60;   // keep the eyes clear, long at the sides
+    const tilt = c * (10 + R() * 26) + (R() - .5) * 30;
+    strand(bangs, rx, ry, rx + tilt, ry + len, 8 + R() * 16, ['#15171d', '#1a1d24', '#202330'][i % 3], (R() - .5) * 26);
+  });
+  strand(bangs, 356, 168, 350, 292, 6, '#191b22', -4);   // one thin strand falling between the eyes
+  strand(bangs, 312, 230, 300, 400, 20, '#15171d', -6);
+  strand(bangs, 432, 228, 446, 410, 22, '#15171d', 6);
+  strand(bangs, 296, 250, 282, 440, 18, '#121419', -4);
+  strand(bangs, 448, 250, 470, 444, 18, '#121419', 4);
+  P(bangs, 'M286 170 C320 130 400 116 456 150 C440 132 380 116 330 128 C304 136 290 152 286 170 Z', '#1a1c23');
+  flyaways(G, 372, 214, 92, 12, '#1a1c23');
+  shine(G, [[326, 150, 18, -28], [392, 134, 12, 6], [430, 168, 8, 36]], '#b9c8e8', .7);
+
+  /* ---- the first reflection: Sophia, the back of her head ---- */
+  const F = g('toFirst');
+  el(F, 'rect', {x: 560, y: 110, width: 300, height: 400, fill: 'transparent'});
+  P(F, 'M566 510 C566 420 610 360 660 346 L720 346 C770 356 806 392 822 440 L846 510 Z', '#262a35');
+  P(F, 'M580 510 C586 440 612 392 650 368 L640 450 L620 510 Z', '#1f2330');
+  P(F, 'M700 380 L780 400 L800 470 L740 460 Z', '#2c313d');
+  P(F, 'M644 346 C664 360 704 362 726 346 L722 334 L648 334 Z', '#1b1e27');
+  P(F, 'M664 300 L708 300 L712 340 L660 340 Z', '#3b404d');
+  P(F, 'M812 420 C826 400 834 380 836 352 L852 356 C852 388 842 420 830 446 Z', '#30353f');
+  P(F, 'M782 270 H822 V378 H782 Z', '#2f3e3e');
+  P(F, 'M786 274 H818 V318 H786 Z', '#384a4a');
+  P(F, 'M818 338 C834 334 846 342 848 356 C846 372 838 382 826 384 C816 380 812 370 812 360 Z', '#4a4f5c');
+  const FH = el(F, 'g', {});
+  P(FH, 'M596 300 C582 200 616 124 672 120 C734 118 762 196 750 300 Z', '#20242d');
+  P(FH, 'M610 300 C604 220 628 150 672 140 C650 180 640 240 644 300 Z', '#191c24', {opacity: .8});
+  P(FH, 'M700 140 C740 160 752 230 744 300 L724 300 C730 240 724 180 700 140 Z', '#2a2f3b', {opacity: .7});
+  for (let i = 0; i < 16; i++){ const x = 604 + i * 9 + (R() - .5) * 6; el(FH, 'path', {d: `M${672 + (x - 672) * .3} ${132 + R() * 10} Q${x + (R() - .5) * 10} ${200} ${x + (x - 672) * .06} ${300 + R() * 12}`, stroke: i % 2 ? '#2f3542' : '#15181f', 'stroke-width': 1.2 + R() * 1.3, fill: 'none', opacity: .8}); }
+  P(FH, 'M590 300 L756 300 L752 312 L744 302 L736 318 L726 304 L716 320 L706 304 L694 318 L684 302 L672 320 L662 304 L650 318 L640 302 L628 316 L616 302 L604 314 Z', '#1c2028');
+  flyaways(FH, 674, 186, 56, 8, '#2a2f3a');
+  shine(FH, [[636, 150, 18, -16], [652, 156, 10, -10], [700, 138, 14, 8]], '#9db4e2', .85);
+
+  /* ---- middle reflection: Ishaan, a face replaced by tiles ---- */
+  const I = g('ishaan');
+  el(I, 'rect', {x: 818, y: 120, width: 170, height: 280, fill: 'transparent'});
+  P(I, 'M826 396 C830 320 856 290 880 282 L920 282 C952 292 972 330 978 396 Z', '#1a2135');
+  P(I, 'M840 396 C846 340 862 306 882 292 L874 360 Z', '#151b2d');
+  P(I, 'M840 250 C832 190 846 136 882 130 C920 128 940 180 932 250 L944 300 L828 300 Z', '#1c2230');
+  hairArc(I, 884, 200, 52, 72, Math.PI * .6, Math.PI * .95, 7, 60, 110, 7, 12, '#1f2534', .15);
+  hairArc(I, 884, 200, 52, 72, Math.PI * .05, Math.PI * .4, 7, 60, 110, 7, 12, '#1f2534', .15);
+  el(I, 'ellipse', {cx: 884, cy: 198, rx: 29, ry: 40, fill: 'url(#tilesFace)'});
+  el(I, 'ellipse', {cx: 884, cy: 198, rx: 29, ry: 40, fill: 'none', stroke: '#8b9bc0', 'stroke-width': 1.4, opacity: .7});
+  P(I, 'M850 156 C860 140 880 134 904 138', 'none', {stroke: '#b9c8e8', 'stroke-width': 2.4, opacity: .6});
+  P(I, 'M946 258 H972 V330 H946 Z', '#33413f');
+  P(I, 'M944 318 C958 312 976 320 978 334 C974 346 962 350 950 346 Z', '#3b4050');
+
+  /* ---- long-haired reflection ---- */
+  const L = g('longhair');
+  P(L, 'M994 290 C988 200 1004 140 1040 136 C1078 136 1094 200 1090 290 Z', '#171c28');
+  hairArc(L, 1040, 200, 42, 60, Math.PI * .05, Math.PI * .95, 14, 70, 110, 6, 10, '#1b2130', .1);
+  P(L, 'M1080 236 H1096 V276 H1080 Z', '#2a3634');
+  shine(L, [[1020, 150, 12, -10]], '#8ea3cc', .6);
+
+  /* ---- eye-bar reflection ---- */
+  const E = g('eyebar');
+  P(E, 'M1112 272 C1114 232 1128 214 1150 210 C1172 214 1188 232 1190 272 Z', '#1a2030');
+  P(E, 'M1126 196 C1120 160 1134 140 1152 140 C1172 140 1184 160 1180 196 C1178 214 1166 226 1152 228 C1138 226 1128 214 1126 196 Z', '#2a3142');
+  P(E, 'M1120 190 C1114 150 1132 132 1152 132 C1174 132 1190 152 1184 192 L1178 170 C1168 150 1136 150 1126 170 Z', '#161b26');
+  el(E, 'rect', {x: 1122, y: 176, width: 64, height: 9, fill: '#030407'});
+  P(E, 'M1176 236 H1188 V262 H1176 Z', '#2a3634');
+
+  /* ---- deepest reflection: Arya, a jagged abstract figure ---- */
+  const A = g('aryaShape');
+  let d = 'M1238 150';
+  for (let i = 1; i <= 22; i++){ const a = -Math.PI / 2 + i / 22 * Math.PI * 2, r = i % 2 ? 40 + R() * 6 : 14 + R() * 8; d += ` L${1238 + Math.cos(a) * r * .9} ${190 + Math.sin(a) * r}`; }
+  P(A, d + ' Z', '#3a4b70');
+  P(A, 'M1214 238 L1226 206 L1250 206 L1262 238 Z', '#2b3a5a');
+  for (let i = 0; i < 8; i++) el(A, 'path', {d: `M${1220 + R() * 40} ${160 + R() * 60} l${(R() - .5) * 30} ${(R() - .5) * 30}`, stroke: '#7d93c2', 'stroke-width': 1, opacity: .7});
+
+  /* ---- the sink below the mirror: Danny ---- */
+  const S = g('sink');
+  el(S, 'rect', {x: 640, y: 560, width: 560, height: 200, fill: 'transparent'});
+  P(S, 'M660 600 H1180 L1172 622 H668 Z', '#5f6e8e');
+  P(S, 'M668 622 H1172 C1166 690 1080 736 920 738 C760 736 674 690 668 622 Z', '#55648a');
+  P(S, 'M700 624 H1140 C1132 676 1060 708 920 710 C780 708 708 676 700 624 Z', '#3d4b6f');
+  P(S, 'M720 626 H1120 C1110 664 1050 690 920 692 C790 690 730 664 720 626 Z', '#334064', {opacity: .8});
+  el(S, 'ellipse', {cx: 920, cy: 668, rx: 14, ry: 5, fill: '#2a3552'});
+  P(S, 'M905 560 H935 V600 H905 Z', '#7483a3');
+  P(S, 'M912 568 H972 V582 H912 Z', '#7f8eae');
+  P(S, 'M960 582 H972 V596 H960 Z', '#7f8eae');
+  P(S, 'M676 604 H1160', 'none', {stroke: '#7d8cad', 'stroke-width': 2, opacity: .6});
+
+  /* ---- foreground: a held-up phone screen and a thumb ---- */
+  const FG = g('foreground');
+  P(FG, 'M36 318 H298 V812 H36 Z', '#5d7375');
+  P(FG, 'M44 326 H290 V690 H44 Z', '#364548');
+  P(FG, 'M44 600 C110 560 200 572 290 612 V690 H44 Z', '#2e3b3d');
+  P(FG, 'M120 690 C112 560 130 420 190 360 C230 330 276 330 290 350 V690 Z', '#2b3739', {opacity: .9});
+  for (let i = 0; i < 9; i++){ const x = 130 + i * 16; el(FG, 'path', {d: `M${x} 690 C${x - 4} 600 ${x + 6} 480 ${x + 30} 380`, stroke: '#3f4f52', 'stroke-width': 3, fill: 'none', opacity: .7}); }
+  [[54, 338], [136, 342], [132, 384], [124, 456]].forEach(([x, y]) => P(FG, `M${x} ${y} c3 6 4 10 0 13 c-4 -3 -3 -7 0 -13 Z`, '#6e8689', {opacity: .8}));
+  P(FG, 'M52 696 H284 V706 H52 Z', '#7d9496');
+  P(FG, 'M48 726 H82 V812 H48 Z', '#6b8285');
+  P(FG, 'M92 732 H240 V750 H92 Z', '#7d9496');
+  P(FG, 'M92 762 H240 V780 H92 Z', '#6b8285');
+  P(FG, 'M250 726 H290 V812 H250 Z', '#6b8285');
+  P(FG, 'M240 812 C252 760 276 700 298 640 C306 600 316 570 330 562 C350 556 360 580 356 620 C352 680 370 740 410 812 Z', '#b7afa4');
+  P(FG, 'M300 640 C312 600 326 576 340 572 C330 600 322 640 318 700 Z', '#cfc8be', {opacity: .8});
+  P(FG, 'M330 680 C346 700 362 740 380 812 L360 812 C350 760 340 720 330 680 Z', '#9d958b', {opacity: .7});
+  P(FG, 'M322 600 C330 596 340 598 344 606', 'none', {stroke: '#968e84', 'stroke-width': 1.6});
+})();
+
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- data: AOL user 10288049 (the account used for Danny's painting) ----------
+   One entry per search: [query, time, [[rank, site clicked], ...]].
+   Repeated rows for the same search (several clicked results) are grouped into one entry. */
+const ID = '10288049';
+const ROWS = [["psychosis", "2006-03-06 18:43:09", [[3, "www.aacap.org"], [7, "www.mind.org.uk"]]], ["depression with psychosis", "2006-03-06 18:48:35", [[1, "www.healthyplace.com"]]], ["effects of child sexual abuse", "2006-03-06 18:53:52", [[4, "www.ncptsd.va.gov"], [7, "www.apa.org"], [8, "www.siawso.org"], [9, "web4health.info"]]], ["crocheting", "2006-03-14 20:26:11", [[1, "www.knowledgehound.com"]]], ["the art of crocheting", "2006-03-14 20:27:39", [[1, "journals.aol.com"], [4, "www.artisticnetwork.net"], [5, "www.webspace.umd.edu"]]], ["who becomes artistic", "2006-03-14 20:36:08", []], ["going through therapy", "2006-03-16 10:06:24", [[1, "www.consciouschoice.com"], [2, "kidshealth.org"]]], ["going through therapy", "2006-03-16 10:12:11", []], ["therapy for sexual abuse", "2006-03-16 10:12:27", [[2, "www.academyanalyticarts.org"], [3, "www.helpyourselftherapy.com"], [4, "www.aaets.org"], [5, "www.phac-aspc.gc.ca"], [8, "www.aest.org.uk"]]], ["signs of obsession compulsion disorder", "2006-03-16 10:34:41", [[1, "psychcentral.com"], [3, "msms.essortment.com"], [7, "www.helpguide.org"]]], ["i have to be good all the time", "2006-03-16 10:37:31", []], ["trying to be perfect", "2006-03-16 10:37:57", [[3, "www.couns.uiuc.edu"]]], ["selfless mothers and daughters", "2006-03-16 10:45:31", []], ["signs of a selfless person", "2006-03-16 10:46:30", [[9, "www2.bitstream.net"]]], ["tuesdays child", "2006-03-16 10:48:43", [[2, "www.rhymes.org.uk"]]], ["caretaking roles in families", "2006-03-16 10:50:22", [[1, "www.ablongman.com"], [2, "www.ablongman.com"], [4, "www.findarticles.com"], [2, "www.ablongman.com"]]], ["parentified children", "2006-03-16 10:57:13", [[1, "www.alllaw.com"], [4, "www.ablongman.com"], [5, "www.ablongman.com"], [6, "www.ncbi.nlm.nih.gov"], [10, "www.wpic.pitt.edu"], [10, "www.wpic.pitt.edu"], [10, "www.wpic.pitt.edu"], [9, "www.cyc-net.org"]]], ["signs of a caretaking role in dysfunctional families", "2006-03-16 11:06:07", [[3, "en.wikipedia.org"], [2, "www.termpapergenie.com"], [1, "www.nmha.org"], [4, "www.answers.com"], [6, "www.crescentlife.com"], [8, "www.psychpage.com"]]], ["why some people live in isolation", "2006-03-19 19:40:47", [[3, "www.berkeleywellness.com"], [2, "hikingincolorado.org"], [9, "www.patient.co.uk"]]], ["bubbly personality", "2006-03-24 11:00:15", []], ["people search", "2006-03-24 11:08:13", []], ["seneca direct", "2006-03-28 09:29:47", [[1, "www.cigarettessentdirect.com"]]], ["obsessive cleaning", "2006-03-28 09:37:01", [[3, "aca.ninemsn.com.au"], [2, "sundripjournals.blogspot.com"], [4, "www.pregnancy-info.net"], [10, "www.ojar.com"], [9, "www.medic8.com"]]], ["people living in isolation", "2006-03-28 09:44:36", []], ["survival insticts of sexually molested people", "2006-03-28 09:45:31", []], ["survival insticts of sexually molested people", "2006-03-28 09:46:14", []], ["survivors of sexual molestation", "2006-03-28 09:47:06", [[5, "www.healthyplace.com"], [9, "www.enotalone.com"], [10, "www.haworthpress.com"]]], ["behavior problems of adults abused as children", "2006-03-28 09:55:44", [[2, "www.apa.org"], [5, "www.aacap.org"], [9, "www.sciencedaily.com"], [10, "mentalhelp.net"]]], ["behavior problems of adults abused as children", "2006-03-28 10:18:00", [[13, "www.prevent-abuse-now.com"]]], ["perfectionist personality", "2006-03-28 10:25:47", [[1, "narcissism.homestead.com"]]], ["therapist ethics", "2006-03-29 19:37:22", [[3, "kspope.com"], [2, "kspope.com"], [10, "www.asrt.org"]]], ["bmw", "2006-03-29 19:44:31", []], ["boy called it", "2006-03-31 10:11:29", [[5, "www.directessays.com"], [9, "www.bookcrossing.com"]]], ["childhood abuse survivors", "2006-03-31 10:16:50", [[2, "www.childabusesurvivor.net"]]], ["old forge", "2006-04-01 06:45:28", []], ["attractive", "2006-04-03 20:16:14", []], ["happy when someone died", "2006-04-04 20:39:08", [[6, "windowmanager.blogspot.com"]]], ["scranton times", "2006-04-04 20:42:35", [[1, "www.scrantontimes.com"]]], ["scranton times", "2006-04-05 08:36:51", [[1, "www.scrantontimes.com"]]], ["ideal weight for women", "2006-04-05 17:58:16", [[1, "www.annecollins.com"]]], ["http froggy 101.com", "2006-04-06 16:59:01", [[1, "www.froggy101.com"], [4, "www.froggy929.com"], [2, "profile.myspace.com"], [3, "profile.myspace.com"], [1, "www.froggy101.com"]]], ["oprahs dept diet", "2006-04-07 16:41:12", []], ["oprahs dept diet", "2006-04-07 16:42:33", []], ["what do colors mean", "2006-04-08 07:52:10", [[2, "www.infoplease.com"], [1, "www.factmonster.com"]]], ["knoebles", "2006-04-08 16:36:41", [[1, "co.essortment.com"], [2, "www.epinions.com"], [3, "www.angelfire.com"]]], ["froggy 101", "2006-04-08 16:39:55", [[1, "www.froggy101.com"], [5, "forums.northernattack.com"], [1, "www.froggy101.com"]]], ["froggy 101 sex offender list", "2006-04-08 16:41:33", []], ["http www.seneca direct.com", "2006-04-11 10:22:32", []], ["realestate in fortyfort pennsylvania", "2006-04-20 12:08:58", [[2, "www.usacitiesonline.com"], [1, "www.desiderio.net"]]], ["medical terms", "2006-04-25 08:46:03", [[1, "www.medterms.com"]]], ["trauma", "2006-04-25 09:08:02", []], ["dr berger kingston pa", "2006-04-25 09:11:28", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:24", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:28", []], ["psychiatrist pennsylvania", "2006-04-25 09:12:35", []], ["recovering from childhood abuse", "2006-04-26 09:13:45", [[1, "open-mind.org"], [3, "store.health.org"], [8, "www.nmessences.com"], [9, "www.jimhopper.com"]]], ["hay", "2006-04-30 19:56:02", []], ["why do women fall in love with their therapists", "2006-04-30 19:58:28", [[4, "www.psychologytoday.com"]]], ["why do women fall in love with their therapists", "2006-04-30 19:59:52", [[15, "www.therapy-abuse.net"], [24, "skepdic.com"]]], ["why do women fall in love with their therapists", "2006-04-30 20:16:05", []], ["scranton times", "2006-05-04 08:54:51", [[1, "www.scrantontimes.com"], [5, "www.thetimes-tribune.com"]]], ["personality types", "2006-05-04 16:37:21", [[3, "www.9types.com"], [5, "www.personalitypage.com"], [8, "www.humanmetrics.com"]]], ["scranton times", "2006-05-05 08:21:10", [[1, "www.scrantontimes.com"]]], ["passive agressive personality", "2006-05-05 08:46:44", [[1, "www.passiveaggressive.homestead.com"]]], ["aggressive personality", "2006-05-05 08:49:13", [[2, "narcissism.homestead.com"]]], ["passive personality", "2006-05-05 08:50:49", [[6, "www.nesl.edu"]]], ["scranton times", "2006-05-05 15:22:17", [[1, "www.scrantontimes.com"]]], ["dictionary", "2006-05-06 17:57:43", []], ["dictionary", "2006-05-06 17:59:47", []], ["dictionary", "2006-05-06 18:02:52", []], ["dictionary", "2006-05-06 18:10:29", []], ["webstersdictionary.com", "2006-05-06 18:25:34", [[1, "www.m-w.com"]]], ["rune sca", "2006-05-07 13:08:55", []], ["www.runescape.copm", "2006-05-07 13:09:19", [[1, "www.miniclip.com"]]], ["demolay", "2006-05-10 17:53:17", [[1, "www.demolay.org"]]], ["effects of childhood trauma", "2006-05-10 19:36:59", [[1, "www.upliftprogram.com"], [2, "www.childtrauma.org"], [3, "www.childtrauma.org"], [5, "www.sidran.org"], [6, "web4health.info"], [9, "www.cavalcadeproductions.com"]]], ["effects of childhood trauma", "2006-05-10 20:29:47", [[11, "www.ncbi.nlm.nih.gov"], [12, "www.ncbi.nlm.nih.gov"], [13, "www.lawandpsychiatry.com"], [25, "www.cavalcadeproductions.com"]]], ["dictionary", "2006-05-11 15:32:48", [[1, "dictionary.reference.com"], [2, "www.m-w.com"], [4, "www.yourdictionary.com"]]], ["wyoming valley library", "2006-05-12 11:47:48", []], ["wyoming valley libraries", "2006-05-12 11:48:20", []], ["luzerne county library", "2006-05-12 11:49:03", [[1, "www.luzerneco.lib.pa.us"]]], ["what makes a changeable person", "2006-05-13 18:32:03", [[7, "xmlns.com"]]], ["how do people fall in love", "2006-05-13 18:45:17", [[1, "health.discovery.com"], [5, "www.bbc.co.uk"], [1, "health.discovery.com"]]], ["signs of a good wife", "2006-05-13 19:36:45", []], ["signs of a good wife", "2006-05-13 19:37:40", [[15, "www.everything2.com"], [24, "www.britishexpat.com"]]], ["what kind of women do men fall madly i n love with", "2006-05-13 19:48:45", [[1, "www.lovessecrets.com"], [2, "www.amazon.com"], [3, "www.amazon.com"], [5, "www.chiroarts.com"]]], ["pulmory testing", "2006-05-15 08:38:34", []], ["pulmonary testing", "2006-05-15 08:39:34", [[2, "www.nationaljewish.org"]]], ["why are some women so mean", "2006-05-18 18:05:22", []], ["mean women", "2006-05-18 18:06:04", [[1, "www.askmen.com"], [2, "www.amazon.com"], [2, "www.amazon.com"], [1, "www.askmen.com"]]], ["test if your mean", "2006-05-18 18:14:22", []], ["perfectly shaped woman", "2006-05-18 18:14:58", []], ["how to get into shape", "2006-05-19 11:30:45", []], ["exercise routine at home", "2006-05-19 11:34:35", [[2, "www.phitchick.com"]]], ["shonen jump", "2006-05-20 15:15:25", [[5, "www.animenewsnetwork.com"], [8, "www.upperdeckentertainment.com"]]], ["being the best mother", "2006-05-24 19:45:41", [[6, "www.momscape.com"]]], ["to wear one's heart on one's sleeve", "2006-05-25 18:16:03", []], ["to wear one's heart on one's sleeve", "2006-05-25 18:17:31", []], ["vulnerable", "2006-05-25 18:18:45", [[1, "www.coping.org"]]], ["traits of a loving caring woman", "2006-05-25 18:22:44", []], ["psychology wearing one's heart on one's sleeve", "2006-05-25 18:39:57", [[5, "www.pep-web.org"], [6, "www.pep-web.org"], [7, "members.aol.com"], [7, "members.aol.com"], [8, "homepages.ihug.co.nz"]]], ["learning the truth", "2006-05-25 18:53:01", []]];
+const rankOf = r => r[2].length ? r[2][0][0] : null;
+const clickLine = r => r[2].length ? `clicked ${r[2].length} result${r[2].length > 1 ? 's' : ''}: ${r[2][0][1]}${r[2].length > 1 ? ' +' + (r[2].length - 1) : ''}` : 'no click';
+
+/* ---------- simple two-page routing (#first-reflection is the subpage) ---------- */
+function route(){
+  const sub = location.hash === '#first-reflection';
+  $('#home').classList.toggle('on', !sub);
+  $('#reflection').classList.toggle('on', sub);
+  document.title = sub ? 'the first reflection' : 'Reflections';
+  if (sub){ drawRefWall(); layoutTiles(); }
+}
+addEventListener('hashchange', route);
+$('#toFirst').addEventListener('click', () => location.hash = 'first-reflection');
+$('#toFirst').addEventListener('keydown', e => { if (e.key === 'Enter') location.hash = 'first-reflection'; });
+$('#back').onclick = () => { location.hash = ''; };
+
+
+/* ---------- the figure: the back of her head on both sides ---------- */
+const art = $('#figureArt');
+/* fill the template's hair with strands, highlights and flyaways before it is copied to both sides */
+(function hairDetail(){
+  const NS = 'http://www.w3.org/2000/svg';
+  let sd = 7; const R = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const mk = (parent, tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); parent.appendChild(e); return e; };
+  const S = art.content.querySelector('.hairStrands'), H = art.content.querySelector('.hairShine');
+  // long strands falling from the crown to the cut line
+  for (let i = 0; i < 46; i++){
+    const t = i / 45, x0 = 200 + (R() - .5) * 46, y0 = 40 + R() * 14;
+    const xe = 102 + t * 198 + (R() - .5) * 8, ye = 228 + R() * 26;
+    const cx = (x0 + xe) / 2 + (xe - 200) * .42, cy = 120 + R() * 30;
+    mk(S, 'path', {d: `M${x0} ${y0} Q${cx} ${cy} ${xe} ${ye}`, fill: 'none', stroke: ['#2f3540', '#11141a', '#383e4b', '#1a1e26'][i % 4], 'stroke-width': .8 + R() * 1.6, opacity: .45 + R() * .45, 'stroke-linecap': 'round'});
+  }
+  // darker clumps where strands separate near the ends
+  for (let i = 0; i < 9; i++){
+    const x = 116 + i * 21 + R() * 8, top = 150 + R() * 30, w = 5 + R() * 6;
+    mk(S, 'path', {d: `M${x - w} ${top + 40} Q${x} ${top} ${x + w} ${top + 40} L${x + 2} ${244 + R() * 14} Z`, fill: '#101318', opacity: .7});
+  }
+  // the crown's sheen: a band of pale blue highlights, plus a few small bright flecks like in Danny's painting
+  [[126, 104, 30, -30], [150, 82, 26, -18], [176, 70, 22, -6], [222, 68, 20, 8], [248, 80, 24, 20], [270, 102, 20, 34]].forEach(([x, y, w, r]) => {
+    mk(H, 'path', {d: `M${x} ${y} q${w * .5} ${-w * .22} ${w} 0 q${-w * .5} ${w * .14} ${-w} 0 Z`, fill: '#7e94c2', opacity: .55, transform: `rotate(${r} ${x} ${y})`});
+  });
+  [[140, 92, 14, -24], [160, 80, 8, -14], [236, 74, 10, 12]].forEach(([x, y, w, r]) => {
+    mk(H, 'path', {d: `M${x} ${y} q${w * .5} ${-w * .3} ${w} 0 q${-w * .5} ${w * .2} ${-w} 0 Z`, fill: '#dbe6fb', opacity: .9, transform: `rotate(${r} ${x} ${y})`});
+  });
+  // stray hairs lifting off the outline
+  for (let i = 0; i < 10; i++){
+    const a = Math.PI * (1.12 + R() * .76), x = 200 + Math.cos(a) * 100, y = 146 + Math.sin(a) * 108;
+    mk(H, 'path', {d: `M${x} ${y} q${Math.cos(a) * 8 + (R() - .5) * 10} ${Math.sin(a) * 6 - 4} ${Math.cos(a) * 14 + (R() - .5) * 12} ${Math.sin(a) * 10 + (R() - .5) * 6}`, fill: 'none', stroke: '#252a34', 'stroke-width': .6 + R() * .5, 'stroke-linecap': 'round', opacity: .8});
+  }
+  // fine wisps at the nape
+  for (let i = 0; i < 7; i++){ const x = 184 + i * 5.5; mk(S, 'path', {d: `M${x} 258 q${(R() - .5) * 4} 8 ${(R() - .5) * 6} 14`, fill: 'none', stroke: '#1b1f27', 'stroke-width': 1, opacity: .8}); }
+})();
+
+/* glazed tile wall behind the reflection, matching the homepage */
+function drawRefWall(){
+  const NS = 'http://www.w3.org/2000/svg', svg = $('#refWall'), W = innerWidth, H = innerHeight, size = 72;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = '';
+  let sd = 3; const R = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; };
+  mk('rect', {width: W, height: H, fill: '#4a679d'});
+  for (let y = 0; y < H; y += size) for (let x = 0; x < W; x += size){
+    const L = 24 + (R() - .5) * 5, S = 48 + (R() - .5) * 8, Hh = 218 + (R() - .5) * 6;
+    mk('rect', {x: x + 2.5, y: y + 2.5, width: size - 4.5, height: size - 4.5, fill: `hsl(${Hh} ${S}% ${L}%)`});
+    mk('path', {d: `M${x + 3.5} ${y + size - 4} V${y + 3.5} H${x + size - 4}`, fill: 'none', stroke: `hsl(${Hh} 60% ${L + 9}%)`, 'stroke-width': 1.5, opacity: .5});
+    mk('path', {d: `M${x + 3.5} ${y + size - 3} H${x + size - 3} V${y + 3.5}`, fill: 'none', stroke: `hsl(${Hh} 50% ${L - 7}%)`, 'stroke-width': 1.4, opacity: .6});
+    if (R() < .3) mk('rect', {x: x + 6 + R() * (size - 24), y: y + 6 + R() * (size - 24), width: 6 + R() * 14, height: 4 + R() * 9, fill: `hsl(${Hh} 40% ${L + 6}%)`, opacity: .3});
+  }
+  mk('rect', {width: W, height: H, filter: 'url(#refMottle)', opacity: .16, style: 'mix-blend-mode:screen'});
+  mk('rect', {width: W, height: H, filter: 'url(#refGrain)', opacity: .22});
+}
+
+document.querySelectorAll('.face').forEach(f => f.appendChild(art.content.cloneNode(true)));
+
+/* ---------- query tiles on the wall ---------- */
+let spots = [];
+function layoutTiles(){
+  const W = innerWidth, H = innerHeight, box = $('#stage').getBoundingClientRect();
+  spots = [];
+  for (let y = 70; y < H - 150; y += 84) for (let x = 14; x < W - 156; x += 156){
+    const overFigure = x + 142 > box.left - 20 && x < box.right + 20 && y + 70 > box.top - 10 && y < box.bottom + 10;
+    const overHud = x + 142 > W - 260 && y < 170;
+    if (!overFigure && !overHud) spots.push([x, y]);
+  }
+  // shuffle so data appears scattered
+  for (let i = spots.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
+  document.querySelectorAll('.qtile').forEach((t, i) => { const s = spots[i % spots.length]; t.style.left = s[0] + 'px'; t.style.top = s[1] + 'px'; });
+}
+addEventListener('resize', () => { if (location.hash === '#first-reflection'){ drawRefWall(); layoutTiles(); } });
+function wrap(q, n){ const words = q.split(' '), lines = ['']; words.forEach(w => { const l = lines[lines.length-1]; if ((l + ' ' + w).trim().length > n) lines.push(w); else lines[lines.length-1] = (l + ' ' + w).trim(); }); return lines.slice(0, 4); }
+const heads = () => document.querySelectorAll('.headData');
+function writeHead(text, t, rank){
+  const lines = wrap(text, 14);
+  document.querySelectorAll('.hq').forEach(el => { el.innerHTML = ''; lines.forEach((ln, k) => { const ts = document.createElementNS('http://www.w3.org/2000/svg', 'tspan'); ts.setAttribute('x', 200); ts.setAttribute('dy', k ? 21 : 0); ts.textContent = ln; el.appendChild(ts); }); });
+  document.querySelectorAll('.ht').forEach(el => el.textContent = t ? t + (rank ? '  #' + rank : '') : '');
+}
+function setHead(op){ heads().forEach(h => { h.style.transition = 'opacity .35s'; h.setAttribute('opacity', op); }); }
+function phone(t){ document.querySelectorAll('.phoneScreen').forEach(p => p.setAttribute('fill', t ? '#9fd4ff' : '#24333a')); document.querySelectorAll('.phoneTime').forEach(p => p.textContent = t ? t.slice(11, 16) : ''); }
+
+// a card leaves her head and flies to its tile on the wall
+function fly(i){
+  const r = ROWS[i], q = r[0], t = r[1];
+  const box = $('#stage').getBoundingClientRect();
+  const el = document.createElement('div'); el.className = 'qtile fly in';
+  el.innerHTML = `<b></b>${t}<br><span class="cl"></span>`;
+  el.querySelector('.cl').textContent = clickLine(r);
+  // when the wall is full, the oldest card in that spot fades out
+  const old = document.querySelector(`.qtile[data-spot="${i % spots.length}"]`);
+  if (old){ old.style.opacity = 0; setTimeout(() => old.remove(), 600); }
+  el.dataset.spot = i % spots.length;
+  el.querySelector('b').textContent = q;
+  el.style.left = (box.left + box.width/2 - 71) + 'px'; el.style.top = (box.top + box.height*.22) + 'px'; el.style.transform = 'scale(1.15)';
+  $("#wall").appendChild(el);
+  const s = spots[i % spots.length] || [20, 80];
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.style.left = s[0] + 'px'; el.style.top = s[1] + 'px'; el.style.transform = 'scale(1)'; }));
+}
+
+/* ---------- trying to turn her ---------- */
+const turner = $('#turner');
+let angle = 0, tries = 0, busy = false, shown = 0;
+
+// each attempt picks one way of NOT showing her face
+const MOVES = [
+  {kind: 'flinch', say: n => `She starts to turn, then snaps back. Still the back of her head.`},
+  {kind: 'flinch', say: n => `She gets halfway, then turns away again.`},
+  {kind: 'full',   say: n => `She turned all the way around. You are still looking at the back of her head.`},
+  {kind: 'flinch', say: n => `She refuses. You get another search instead of a face.`},
+  {kind: 'full',   say: n => `Another full turn. The back of her head is on both sides.`},
+  {kind: 'spin',   say: n => `She spins twice. There is no front to this reflection.`},
+  {kind: 'full',   say: n => `She turns. Her back again.`}
+];
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function typeQuery(q, total){
+  const el = $('#typed'); el.textContent = '';
+  const per = Math.max(25, total / Math.max(1, q.length));
+  for (let k = 1; k <= q.length; k++){ el.textContent = q.slice(0, k); writeHead(q.slice(0, k)); await sleep(per); }
+}
+async function tryTurn(){
+  if (busy) return;
+  busy = true; tries++;
+  $('#tries').textContent = tries;
+  $('#faces').textContent = 0;               // never changes, no matter what
+  const move = tries <= 6 ? MOVES[tries - 1] : MOVES[2 + Math.floor(Math.random() * 5)];
+  const idx = (tries - 1) % ROWS.length, row = ROWS[idx], q = row[0], t = row[1], rank = rankOf(row), isNew = idx === shown;
+
+  // the turn and the search happen together: as she turns, her search is typed
+  // into the box AND across the back of her head, where her face should be
+  let frames, dur = Math.max(1600, q.length * 75 + 500);
+  if (move.kind === 'flinch'){ frames = [angle, angle + 62, angle + 70, angle]; }
+  else if (move.kind === 'full'){ frames = [angle, angle + 180]; angle += 180; }
+  else { frames = [angle, angle + 720]; angle += 720; dur += 600; }
+  if (reduce) dur = 400;
+
+  $('#status').textContent = '';
+  writeHead(''); setHead(1); phone(t);
+  const anim = turner.animate(frames.map(a => ({transform: `rotateY(${a}deg)`})), {duration: dur, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards'});
+  await Promise.all([typeQuery(q, dur * .8), anim.finished]);
+  turner.style.transform = `rotateY(${angle}deg)`; anim.cancel();
+
+  writeHead(q, t, rank);
+  $('#go').classList.add('pressed'); await sleep(160); $('#go').classList.remove('pressed');
+  $('#status').textContent = move.say(tries) + `  She searched "${q}" at ${t.slice(11, 16)}.`;
+  if (isNew){ fly(idx); shown++; }
+  document.title = q;
+  await sleep(900);
+  setHead(0); phone(null);
+
+  if (tries === 12) $('#deeper').style.display = 'block';   // the way on opens partway, the data keeps going
+  if (shown === ROWS.length && isNew){
+    const last = ROWS[ROWS.length - 1];
+    $('#status').textContent = `You tried ${tries} times and read all ${ROWS.length} of her searches, ending with "${last[0]}." You never saw her face.`;
+  }
+  busy = false;
+}
+// a new attempt each time the cursor enters her, plus click, tap and keyboard
+turner.addEventListener('mouseenter', tryTurn);
+turner.addEventListener('click', tryTurn);
+turner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tryTurn(); } });
+// link to the middle reflection (Ishaan's page) once it is published
+const NEXT_PAGE = '';
+$('#deeper').onclick = () => { if (NEXT_PAGE) location.href = NEXT_PAGE; };
+
+route();
+</script>
+</body>
+</html>
